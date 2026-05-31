@@ -6,7 +6,7 @@ plugins {
 
 group = 'com.travelbuddy'
 version = '0.0.1-SNAPSHOT'
-description = 'auth-service'
+description = 'profile-service'
 
 java {
 	toolchain {

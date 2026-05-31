@@ -1,4 +1,4 @@
-package com.travelbuddy.authservice.config;
+package com.travelbuddy.profileservice.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,7 +20,7 @@ public class SecurityConfig {
 
                 // 2. Open up public access to your authentication endpoints
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**").permitAll() // Allows anyone to access register/login
+                        .requestMatchers("/api/v1/profile/**").permitAll() // Allows anyone to access register/login
                         .anyRequest().authenticated()               // Everything else is still safely locked down
                 );
 

@@ -1,13 +1,13 @@
-package com.travelbuddy.authservice;
+package com.travelbuddy.profileservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class AuthServiceApplication {
+public class ProfileServiceApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(AuthServiceApplication.class, args);
+		SpringApplication.run(ProfileServiceApplication.class, args);
 	}
 
 }
