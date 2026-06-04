@@ -22,26 +22,18 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
 
-        boolean isAuthenticated = authService.login(loginRequest.email(), loginRequest.password());
+        String token = authService.login(loginRequest.email(), loginRequest.password());
 
-        if (isAuthenticated) {
-            return ResponseEntity.ok(new AuthResponse(true, "Login successful!", null));
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new AuthResponse(false, "Invalid email or password", null));
-        }
+            return ResponseEntity.ok(new AuthResponse(true, "Login successful!", token));
+
     }
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest registerRequest) {
 
-        boolean registered = authService.register(registerRequest.email(), registerRequest.password());
+        String token = authService.register(registerRequest.email(), registerRequest.password());
 
-        if (registered) {
-            return ResponseEntity.ok(new AuthResponse(true, "Register successful!", null));
-        } else {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(new AuthResponse(false, "Email already exists", null));
-        }
+            return ResponseEntity.ok(new AuthResponse(true, "Register successful!", token));
+
     }
 }
