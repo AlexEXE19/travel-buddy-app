@@ -28,12 +28,12 @@ public class JwtUtil {
                 .compact();
     }
 
-    public String extractEmail(String token) {
-        return Jwts.parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getSubject();
-    }
+//    public String extractEmail(String token) {
+//        return Jwts.parser()
+//                .verifyWith(key)
+//                .build()
+//                .parseSignedClaims(token)
+//                .getPayload()
+//                .getSubject();
+//    }
 }

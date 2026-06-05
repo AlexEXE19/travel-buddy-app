@@ -1,9 +1,9 @@
 spring:
   application:
-    name: profile-service
+    name: auth-service
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/profile_db
+    url: jdbc:postgresql://localhost:5432/auth_db
     username: postgres
     password: ctipass
 
@@ -16,4 +16,7 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
 server:
-  port: 8082
+  port: 8081
+
+jwt:
+  secret: QdohmrehxlOG7LGA5lf8tj03aEPb3Rb8jlA78QeHQFe
