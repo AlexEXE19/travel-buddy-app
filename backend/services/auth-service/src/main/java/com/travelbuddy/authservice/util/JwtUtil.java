@@ -19,21 +19,12 @@ public class JwtUtil {
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    public String generateToken(String email) {
+    public String generateToken(String userId) {
         return Jwts.builder()
-                .subject(email)
+                .subject(userId)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + 3600000))
+                .expiration(new Date(System.currentTimeMillis() + 15*60*1000))
                 .signWith(key)
                 .compact();
     }
-
-//    public String extractEmail(String token) {
-//        return Jwts.parser()
-//                .verifyWith(key)
-//                .build()
-//                .parseSignedClaims(token)
-//                .getPayload()
-//                .getSubject();
-//    }
 }

@@ -20,7 +20,7 @@ public class JwtUtil {
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    public String extractEmail(String token) {
+    public String extractUserId(String token) {
         return Jwts.parser()
                 .verifyWith(key)
                 .build()

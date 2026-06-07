@@ -30,7 +30,7 @@ public class AuthService {
             throw new BadCredentialsException("Invalid email or password");
         }
 
-        return jwtUtil.generateToken(email);
+        return jwtUtil.generateToken(userCredentials.getId().toString());
     }
 
     public String register(String email, String rawPassword) {
@@ -47,6 +47,7 @@ public class AuthService {
         } catch (Exception e) {
             throw new RuntimeException("Could not complete registration. Please try again.");
         }
-        return jwtUtil.generateToken(email);
+        return jwtUtil.generateToken(userCredentials.getId().toString());
+
     }
 }

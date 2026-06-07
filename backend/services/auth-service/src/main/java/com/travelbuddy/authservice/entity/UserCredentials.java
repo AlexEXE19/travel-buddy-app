@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "users_credentials")
@@ -15,8 +16,9 @@ import java.time.LocalDateTime;
 public class UserCredentials {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id", updatable = false, nullable = false)
+    private UUID id;
 
 //    @Column(name = "first_name", nullable = false)
 //    private String firstName;

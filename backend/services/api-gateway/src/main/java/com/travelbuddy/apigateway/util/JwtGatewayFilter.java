@@ -2,7 +2,7 @@ package com.travelbuddy.apigateway.util;
 
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
-import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
@@ -26,24 +26,30 @@ public class JwtGatewayFilter implements GlobalFilter {
             return chain.filter(exchange);
         }
 
-        String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        HttpCookie authCookie = request.getCookies().getFirst("AUTH_TOKEN");
+
+        assert authCookie != null;
+        System.out.println(authCookie);
+
+        if (authCookie == null) {
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
         }
 
-        String token = authHeader.substring(7);
+        System.out.println("EXECUTED");
+
+        String token = authCookie.getValue();
 
         try {
-            String extractedEmail = jwtUtil.extractEmail(token);
+            String extractedUserId = jwtUtil.extractUserId(token);
 
-            if (extractedEmail == null || jwtUtil.isTokenExpired(token)) {
+            if (extractedUserId == null || jwtUtil.isTokenExpired(token)) {
                 exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                 return exchange.getResponse().setComplete();
             }
 
             ServerHttpRequest mutatedRequest = request.mutate()
-                    .header("X-User-Email", extractedEmail)
+                    .header("X-User-Id", extractedUserId)
                     .header("X-User-Role", "ROLE_USER")
                     .build();
 

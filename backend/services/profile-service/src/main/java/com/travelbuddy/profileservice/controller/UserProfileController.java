@@ -1,6 +1,8 @@
 package com.travelbuddy.profileservice.controller;
 
 import com.travelbuddy.profileservice.dto.UserProfileUpdateRequest;
+import com.travelbuddy.profileservice.entity.UserProfile;
+import com.travelbuddy.profileservice.repository.UserProfileRepository;
 import com.travelbuddy.profileservice.service.ProfileService;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
@@ -15,6 +17,14 @@ public class UserProfileController {
 
     public UserProfileController(ProfileService profileService) {
         this.profileService = profileService;
+    }
+
+    @GetMapping("/")
+    public ResponseEntity<UserProfile> getUserProfile(@RequestHeader("X-User-Id") String userId) {
+        UserProfile profile = profileService.getUserById(userId);
+
+        return ResponseEntity.ok(profile);
+
     }
 
     @PostMapping("/create")
