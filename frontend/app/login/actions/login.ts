@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 
 export async function login(formData: FormData) {
   const email = formData.get("email");
@@ -15,12 +16,33 @@ export async function login(formData: FormData) {
   });
 
   if (!res.ok) {
-    throw new Error("Invalid credentials");
+    console.log("###########");
+    console.log("Invalid credentials: " + res.status + " " + res.statusText);
+    throw new Error(
+      "Invalid credentials: " + res.status + " " + res.statusText,
+    );
   }
 
-  const data = await res.json();
+  const cookieHeader = res.headers.get("set-cookie");
 
-  console.log(JSON.stringify(data));
+  if (cookieHeader) {
+    const tokenMatch = cookieHeader.match(/AUTH_TOKEN=([^;]+)/i);
+
+    if (tokenMatch && tokenMatch[1]) {
+      const tokenValue = tokenMatch[1];
+      const cookieStore = await cookies();
+
+      cookieStore.set({
+        name: "AUTH_TOKEN",
+        value: tokenValue,
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax",
+        path: "/",
+        maxAge: 15 * 60,
+      });
+    }
+  }
 
   redirect("/profile");
 }
