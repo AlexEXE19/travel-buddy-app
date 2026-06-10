@@ -1,6 +1,7 @@
-FROM gradle:8.6-jdk17 AS builder
+FROM gradle:8.14-jdk17 AS builder
 WORKDIR /home/gradle/project
 COPY --chown=gradle:gradle . .
+RUN mkdir -p /home/gradle/.gradle && chown -R gradle:gradle /home/gradle/.gradle
 RUN gradle bootJar -x test --no-daemon
 
 FROM eclipse-temurin:17-jre
