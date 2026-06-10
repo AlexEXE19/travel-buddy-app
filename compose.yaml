@@ -94,11 +94,11 @@ services:
     networks:
       - frontend-net
 
-  networks:
-    backend-net:
-    frontend-net:
+networks:
+  backend-net:
+  frontend-net:
 
-  volumes:
-    postgres_auth_data:
-    postgres_profile_data:
-    rabbitmq_data:
+volumes:
+  postgres_auth_data:
+  postgres_profile_data:
+  rabbitmq_data:
