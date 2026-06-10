@@ -25,7 +25,6 @@ jobs:
           cd backend/services/auth-service
           chmod +x gradlew
           ./gradlew build -x test
-            - name: Build auth-service
       - name: Build profile-service
         run: |
           cd backend/services/profile-service
