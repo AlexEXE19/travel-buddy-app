@@ -43,7 +43,6 @@ public class AuthController {
 
         String token = authService.register(registerRequest.email(), registerRequest.password());
 
-
         return ResponseEntity.ok(new AuthResponse(true, "Register successful!", token));
 
     }
