@@ -1,0 +1,104 @@
+services:
+  postgres-auth:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ctipass
+      POSTGRES_DB: auth_db
+    volumes:
+      - postgres_auth_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      retries: 5
+    networks:
+      - backend-net
+
+  postgres-profile:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ctipass
+      POSTGRES_DB: profile_db
+    volumes:
+      - postgres_profile_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      retries: 5
+    networks:
+      - backend-net
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      retries: 5
+    networks:
+      - backend-net
+
+  auth-service:
+    build: ./backend/services/auth-service
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-auth:5432/auth_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: ctipass
+      SPRING_RABBITMQ_HOST: rabbitmq
+    depends_on:
+      postgres-auth:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - backend-net
+
+  profile-service:
+    build: ./backend/services/profile-service
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-profile:5432/profile_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: ctipass
+      SPRING_RABBITMQ_HOST: rabbitmq
+    depends_on:
+      postgres-profile:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - backend-net
+
+  gateway:
+    build: ./backend/gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - auth-service
+      - profile-service
+    networks:
+      - backend-net
+      - frontend-net
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    networks:
+      - frontend-net
+
+networks:
+  backend-net:
+  frontend-net:
+
+volumes:
+  postgres_auth_data:
+  postgres_profile_data:
+  rabbitmq_data:
