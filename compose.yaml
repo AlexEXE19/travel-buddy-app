@@ -76,8 +76,8 @@ services:
     networks:
       - backend-net
 
-  gateway:
-    build: ./backend/gateway
+  api-gateway:
+    build: ./backend/services/api-gateway
     ports:
       - "8080:8080"
     depends_on:
