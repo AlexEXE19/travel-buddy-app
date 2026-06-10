@@ -20,11 +20,18 @@ jobs:
           java-version: "17"
           distribution: "temurin"
 
+      - name: Build api-gateway
+        run: |
+          cd backend/services/api-gateway
+          chmod +x gradlew
+          ./gradlew build -x test
+
       - name: Build auth-service
         run: |
           cd backend/services/auth-service
           chmod +x gradlew
           ./gradlew build -x test
+
       - name: Build profile-service
         run: |
           cd backend/services/profile-service
