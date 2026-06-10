@@ -7,7 +7,7 @@ on:
     branches: ["master"]
 
 jobs:
-  build:
+  build-backend:
     runs-on: ubuntu-latest
 
     steps:
@@ -25,8 +25,31 @@ jobs:
           cd backend/services/auth-service
           chmod +x gradlew
           ./gradlew build -x test
+            - name: Build auth-service
+      - name: Build profile-service
+        run: |
+          cd backend/services/profile-service
+          chmod +x gradlew
+          ./gradlew build -x test
 
-      # - name: Test auth-service
-      #   run: |
-      #     cd backend/services/auth-service
-      #     ./gradlew test
+  build-frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm run build
