@@ -3,6 +3,8 @@ package com.travelbuddy.profileservice.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "users_profiles")
 @Getter
@@ -13,8 +15,8 @@ import lombok.*;
 public class UserProfile {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @Column(name = "id", updatable = false, nullable = false)
+    private UUID id;
 
     @Column(name = "first_name", nullable = false)
     private String firstName;

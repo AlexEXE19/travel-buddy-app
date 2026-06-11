@@ -9,19 +9,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
-@EnableWebSecurity // <-- Add this annotation to enable custom security rules
+@EnableWebSecurity
 public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // 1. Disable CSRF since we are using JWT tokens, not cookies
                 .csrf(csrf -> csrf.disable())
 
-                // 2. Open up public access to your authentication endpoints
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/profile/**").permitAll() // Allows anyone to access register/login
-                        .anyRequest().authenticated()               // Everything else is still safely locked down
+                        .requestMatchers("/api/v1/profile/**").permitAll()
+                        .anyRequest().authenticated()
                 );
 
         return http.build();

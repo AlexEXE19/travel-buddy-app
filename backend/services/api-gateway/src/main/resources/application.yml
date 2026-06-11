@@ -1,29 +1,29 @@
-
 server:
   port: 8080
 
 spring:
   application:
     name: api-gateway
+
   cloud:
     gateway:
       server:
         webflux:
           routes:
             - id: auth-service-route
-              uri: http://localhost:8081
+              uri: ${AUTH_SERVICE_URI}
               predicates:
                 - Path=/api/v1/auth/**
 
             - id: profile-service-route
-              uri: http://localhost:8082
+              uri: ${PROFILE_SERVICE_URI}
               predicates:
                 - Path=/api/v1/profile/**
 
           globalcors:
             cors-configurations:
               '[/**]':
-                allowedOrigins: "http://localhost:3000"
+                allowedOrigins: ${CORS_ALLOWED_ORIGIN:http://localhost:3000}
                 allowedMethods:
                   - GET
                   - POST
@@ -34,4 +34,4 @@ spring:
                 allowCredentials: true
 
 jwt:
-  secret: QdohmrehxlOG7LGA5lf8tj03aEPb3Rb8jlA78QeHQFe
+  secret: ${JWT_SECRET}
