@@ -38,11 +38,11 @@ public class UserProfileController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error creating profile");
         }
     }
-    @PutMapping("/update/{id}")
+    @PutMapping("/update/{userId}")
 
-    public ResponseEntity<String> updateProfile(@PathVariable Integer id, @Valid @RequestBody UserProfileUpdateRequest userProfileUpdateRequest) {
+    public ResponseEntity<String> updateProfile(@PathVariable String userId, @Valid @RequestBody UserProfileUpdateRequest userProfileUpdateRequest) {
 
-        boolean updated = profileService.update(id, userProfileUpdateRequest);
+        boolean updated = profileService.update(userId, userProfileUpdateRequest);
 
         if (updated) {
             return ResponseEntity.ok("Update successful!");

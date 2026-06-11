@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class ProfileService {
@@ -21,7 +22,7 @@ public class ProfileService {
     }
 
     public UserProfile getUserById(String userId) {
-        UserProfile userProfile = userProfileRepository.findById(Long.valueOf(userId))
+        UserProfile userProfile = userProfileRepository.findById(UUID.fromString(userId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         return userProfile;
     }
@@ -39,8 +40,8 @@ public class ProfileService {
         return true;
     }
 
-    public boolean update(Integer id, UserProfileUpdateRequest dto) {
-        Optional<UserProfile> profileOptional = userProfileRepository.findById(Long.valueOf(id));
+    public boolean update(String userId, UserProfileUpdateRequest dto) {
+        Optional<UserProfile> profileOptional = userProfileRepository.findById(UUID.fromString(userId));
 
         if (profileOptional.isEmpty()) {
             return false;
