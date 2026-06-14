@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { useEffect } from "react";
 
+
 const mockUser = {
   firstName: "John",
   lastName: "Doe",
@@ -33,18 +34,33 @@ const mockUser = {
 
 export default function ProfilePage() {
   useEffect(() => {
+  
     const fetchProfile = async () => {
       const res = await fetch("http://localhost:8080/api/v1/profile/", {
         method: "GET",
         credentials: "include",
       });
 
+   if (res.status === 401) {
+  alert("Session expired. Please log in again.");
+  window.location.href = "/login";
+  return;
+}
+
       const data = await res.json();
 
       console.log(JSON.stringify(data));
     };
 
+      try {
     fetchProfile();
+
+    }
+    catch(error: any){
+      console.error(error)
+
+    }
+
   }, []);
 
   return (

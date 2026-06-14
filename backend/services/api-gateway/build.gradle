@@ -32,6 +32,7 @@ dependencies {
 	implementation 'io.micrometer:micrometer-tracing-bridge-otel'
 	implementation 'org.springframework.boot:spring-boot-zipkin'
 	implementation 'io.opentelemetry:opentelemetry-exporter-zipkin'
+	implementation 'io.micrometer:context-propagation'
 
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'

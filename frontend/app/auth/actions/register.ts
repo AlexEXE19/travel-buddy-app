@@ -3,11 +3,16 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 
-export async function login(formData: FormData) {
+export async function register(formData: FormData) {
   const email = formData.get("email");
   const password = formData.get("password");
+  const confirmPassword = formData.get("confirmPassword");
 
-  const res = await fetch("http://localhost:8080/api/v1/auth/login", {
+  if (password !== confirmPassword) {
+    throw new Error("Passwords do not match");
+  }
+
+  const res = await fetch("http://api-gateway:8080/api/v1/auth/register", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -17,13 +22,13 @@ export async function login(formData: FormData) {
 
   if (!res.ok) {
     console.log("###########");
-    console.log("Invalid credentials: " + res.status + " " + res.statusText);
+    console.log("Registration failed: " + res.status + " " + res.statusText);
     throw new Error(
-      "Invalid credentials: " + res.status + " " + res.statusText,
+      "Registration failed: " + res.status + " " + res.statusText,
     );
   }
 
-  const cookieHeader = res.headers.get("set-cookie");
+    const cookieHeader = res.headers.get("set-cookie");
 
   if (cookieHeader) {
     const tokenMatch = cookieHeader.match(/AUTH_TOKEN=([^;]+)/i);
@@ -44,5 +49,5 @@ export async function login(formData: FormData) {
     }
   }
 
-  redirect("/profile");
+  redirect("/profile/create");
 }

@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Compass } from "lucide-react";
-import LoginForm from "./components/LoginForm";
+import LoginForm from "../components/LoginForm";
 
 export default function LoginPage() {
   return (

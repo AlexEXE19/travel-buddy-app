@@ -28,9 +28,9 @@ public class UserProfileController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<String> createProfile(@Valid @RequestBody UserProfileUpdateRequest userProfileUpdateRequest) {
+    public ResponseEntity<String> createProfile(@RequestHeader("X-User-Id") String userId, @Valid @RequestBody UserProfileUpdateRequest userProfileUpdateRequest) {
 
-        boolean isCreated = profileService.create(userProfileUpdateRequest);
+        boolean isCreated = profileService.create(userId, userProfileUpdateRequest);
 
         if (isCreated) {
             return ResponseEntity.ok("Profile creation successful!");

@@ -27,8 +27,9 @@ public class ProfileService {
         return userProfile;
     }
 
-    public boolean create(UserProfileUpdateRequest dto) {
+    public boolean create(String userId, UserProfileUpdateRequest dto) {
         UserProfile userProfile = new UserProfile();
+        userProfile.setId(UUID.fromString(userId));
         userProfile.setFirstName(dto.firstName());
         userProfile.setLastName(dto.lastName());
         userProfile.setPhone(dto.phone());
