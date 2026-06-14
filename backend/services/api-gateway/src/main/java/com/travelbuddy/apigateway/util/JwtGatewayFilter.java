@@ -8,10 +8,13 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Component
 public class JwtGatewayFilter implements GlobalFilter {
 
+    private static final Logger log = LoggerFactory.getLogger(JwtGatewayFilter.class);
     private final JwtUtil jwtUtil;
 
     public JwtGatewayFilter(JwtUtil jwtUtil) {
@@ -21,6 +24,7 @@ public class JwtGatewayFilter implements GlobalFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
+        String path = request.getURI().getPath();
 
         if (request.getURI().getPath().contains("/api/v1/auth")) {
             return chain.filter(exchange);
@@ -29,14 +33,12 @@ public class JwtGatewayFilter implements GlobalFilter {
         HttpCookie authCookie = request.getCookies().getFirst("AUTH_TOKEN");
 
         assert authCookie != null;
-        System.out.println(authCookie);
 
         if (authCookie == null) {
+            log.warn("Blocked unauthorized request to path: {} - Missing AUTH_TOKEN cookie", path);
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
         }
-
-        System.out.println("EXECUTED");
 
         String token = authCookie.getValue();
 
@@ -44,9 +46,13 @@ public class JwtGatewayFilter implements GlobalFilter {
             String extractedUserId = jwtUtil.extractUserId(token);
 
             if (extractedUserId == null || jwtUtil.isTokenExpired(token)) {
+                log.warn("Invalid or expired token attempting to access path: {}", path);
                 exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                 return exchange.getResponse().setComplete();
             }
+
+            log.info("Gateway mutating request for path [{}]. Injecting headers: X-User-Id={}, X-User-Role=ROLE_USER",
+                    path, extractedUserId);
 
             ServerHttpRequest mutatedRequest = request.mutate()
                     .header("X-User-Id", extractedUserId)
@@ -56,6 +62,7 @@ public class JwtGatewayFilter implements GlobalFilter {
             return chain.filter(exchange.mutate().request(mutatedRequest).build());
 
         } catch (Exception e) {
+            log.error("Exception occurred during JWT authentication filter processing", e);
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
         }

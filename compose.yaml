@@ -36,6 +36,7 @@ services:
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
     ports:
       - "15672:15672"
+      - "5672:5672"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
@@ -44,7 +45,12 @@ services:
       retries: 5
     networks:
       - backend-net
-
+  zipkin:
+    image: openzipkin/zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - backend-net
   auth-service:
     build: ./backend/services/auth-service
     ports:
