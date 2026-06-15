@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Compass } from "lucide-react";
+import { createProfile } from "./actions/createProfile";
 
 const genderOptions = [
   { value: "male", label: "Male" },
@@ -55,7 +56,6 @@ const subscriptionStatusOptions = [
 ];
 
 export default function CreateProfilePage() {
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
@@ -69,17 +69,6 @@ export default function CreateProfilePage() {
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    // Mock profile creation - in a real app, this would call an API
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // Redirect to profile page after creation
-    router.push("/profile");
   };
 
   return (
@@ -105,7 +94,7 @@ export default function CreateProfilePage() {
               Tell us about yourself to help find the perfect travel companions
             </CardDescription>
           </CardHeader>
-          <form onSubmit={handleSubmit}>
+          <form action={createProfile}>
             <CardContent className="space-y-6">
               {/* Name Fields */}
               <div className="grid sm:grid-cols-2 gap-4">
@@ -113,6 +102,7 @@ export default function CreateProfilePage() {
                   <Label htmlFor="firstName">First Name *</Label>
                   <Input
                     id="firstName"
+                    name="firstName"
                     placeholder="John"
                     value={formData.firstName}
                     onChange={(e) => handleChange("firstName", e.target.value)}
@@ -123,6 +113,7 @@ export default function CreateProfilePage() {
                   <Label htmlFor="lastName">Last Name *</Label>
                   <Input
                     id="lastName"
+                    name="lastName"
                     placeholder="Doe"
                     value={formData.lastName}
                     onChange={(e) => handleChange("lastName", e.target.value)}
@@ -136,6 +127,7 @@ export default function CreateProfilePage() {
                 <Label htmlFor="phone">Phone Number</Label>
                 <Input
                   id="phone"
+                  name="phone"
                   type="tel"
                   placeholder="+1 (555) 000-0000"
                   value={formData.phone}
@@ -149,9 +141,7 @@ export default function CreateProfilePage() {
                   <Label htmlFor="gender">Gender</Label>
                   <Select
                     value={formData.gender}
-                    onValueChange={(value: any) =>
-                      handleChange("gender", value)
-                    }
+                    onValueChange={(value) => handleChange("gender", value)}
                   >
                     <SelectTrigger id="gender">
                       <SelectValue placeholder="Select gender" />
@@ -164,12 +154,13 @@ export default function CreateProfilePage() {
                       ))}
                     </SelectContent>
                   </Select>
+                  <input type="hidden" name="gender" value={formData.gender} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="nationality">Nationality</Label>
                   <Select
                     value={formData.nationality}
-                    onValueChange={(value: any) =>
+                    onValueChange={(value) =>
                       handleChange("nationality", value)
                     }
                   >
@@ -184,6 +175,11 @@ export default function CreateProfilePage() {
                       ))}
                     </SelectContent>
                   </Select>
+                  <input
+                    type="hidden"
+                    name="nationality"
+                    value={formData.nationality}
+                  />
                 </div>
               </div>
 
@@ -192,6 +188,7 @@ export default function CreateProfilePage() {
                 <Label htmlFor="budget">Travel Budget (USD)</Label>
                 <Input
                   id="budget"
+                  name="budget"
                   type="number"
                   placeholder="5000"
                   min="0"
@@ -210,7 +207,7 @@ export default function CreateProfilePage() {
                 <Label htmlFor="subscriptionStatus">Subscription Plan</Label>
                 <Select
                   value={formData.subscriptionStatus}
-                  onValueChange={(value: any) =>
+                  onValueChange={(value) =>
                     handleChange("subscriptionStatus", value)
                   }
                 >
@@ -225,6 +222,11 @@ export default function CreateProfilePage() {
                     ))}
                   </SelectContent>
                 </Select>
+                <input
+                  type="hidden"
+                  name="subscriptionStatus"
+                  value={formData.subscriptionStatus}
+                />
                 <p className="text-xs text-muted-foreground">
                   Upgrade anytime to unlock more features
                 </p>

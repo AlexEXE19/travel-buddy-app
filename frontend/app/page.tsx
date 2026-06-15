@@ -13,10 +13,10 @@ export default function HomePage() {
             <span className="text-xl font-bold text-foreground">TravelBuddy</span>
           </Link>
           <nav className="flex items-center gap-4">
-            <Link href="/login">
+            <Link href="/auth/login">
               <Button variant="ghost">Log in</Button>
             </Link>
-            <Link href="/register">
+            <Link href="/auth/register">
               <Button>Sign up</Button>
             </Link>
           </nav>
@@ -35,12 +35,12 @@ export default function HomePage() {
               Your next journey is better with a buddy.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/register">
+              <Link href="/auth/register">
                 <Button size="lg" className="w-full sm:w-auto">
                   Get Started — {"it's"} free
                 </Button>
               </Link>
-              <Link href="/login">
+              <Link href="/auth/login">
                 <Button size="lg" variant="outline" className="w-full sm:w-auto">
                   I already have an account
                 </Button>
@@ -96,7 +96,7 @@ export default function HomePage() {
             <p className="text-primary-foreground/80 mb-6 max-w-xl mx-auto">
               Join thousands of travelers who have found their perfect travel companions on TravelBuddy.
             </p>
-            <Link href="/register">
+            <Link href="/auth/register">
               <Button size="lg" variant="secondary">
                 Create Your Profile
               </Button>
