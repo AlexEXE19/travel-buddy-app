@@ -10,6 +10,8 @@ import jakarta.persistence.PreUpdate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Set;
+import java.util.HashSet;
 
 @Entity
 @Table(name = "user_profiles")
@@ -75,4 +77,12 @@ public class UserProfile {
     public void preUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    @ManyToMany
+@JoinTable(
+    name = "user_interests",
+    joinColumns = @JoinColumn(name = "profile_id"),
+    inverseJoinColumns = @JoinColumn(name = "interest_id")
+)
+private Set<Interest> interests = new HashSet<>();
 }
