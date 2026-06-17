@@ -3,13 +3,12 @@ package com.travelbuddy.profileservice.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
-
+import java.time.LocalDate;
 public record UserProfileUpdateRequest(
-        @NotBlank(message = "First name is required")
+
         @Size(max = 50, message = "First name must not exceed 50 characters")
         String firstName,
 
-        @NotBlank(message = "Last name is required")
         @Size(max = 50, message = "Last name must not exceed 50 characters")
         String lastName,
 
@@ -21,6 +20,23 @@ public record UserProfileUpdateRequest(
 
         @Size(max = 50, message = "Nationality must not exceed 50 characters")
         String nationality,
+
+        @Size(max = 100, message = "Country must not exceed 100 characters")
+        String countryOfResidence,
+
+        @Size(max = 100, message = "City must not exceed 100 characters")
+        String cityOfResidence,
+
+        @Size(max = 50, message = "Language must not exceed 50 characters")
+        String preferredLanguage,
+
+        LocalDate dateOfBirth,
+
+        @Size(max = 1000, message = "Bio must not exceed 1000 characters")
+        String bio,
+
+        @Size(max = 500, message = "URL must not exceed 500 characters")
+        String profilePictureUrl,
 
         @PositiveOrZero(message = "Budget must be a positive number or zero")
         Float budget

@@ -9,45 +9,86 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import com.travelbuddy.profileservice.entity.Interest;
+import com.travelbuddy.profileservice.entity.TravelPreference;
+import com.travelbuddy.profileservice.service.InterestService;
+import com.travelbuddy.profileservice.service.TravelPreferenceService;
+import com.travelbuddy.profileservice.dto.TravelPreferenceRequest;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/v1/profile")
 public class UserProfileController {
 
     private final ProfileService profileService;
+    private final TravelPreferenceService travelPreferenceService;
+    private final InterestService interestService;
 
-    public UserProfileController(ProfileService profileService) {
+    public UserProfileController(ProfileService profileService,
+                                  TravelPreferenceService travelPreferenceService,
+                                  InterestService interestService) {
         this.profileService = profileService;
+        this.travelPreferenceService = travelPreferenceService;
+        this.interestService = interestService;
     }
 
-    @GetMapping("/")
-    public ResponseEntity<UserProfile> getUserProfile(@RequestHeader("X-User-Id") String userId) {
-        UserProfile profile = profileService.getUserById(userId);
+    // ── Profile ──────────────────────────────────────────
 
-        return ResponseEntity.ok(profile);
-
+    @GetMapping("/me")
+    public ResponseEntity<UserProfile> getMyProfile(
+            @RequestHeader("X-User-Id") String userId) {
+        return ResponseEntity.ok(profileService.getUserById(userId));
     }
 
-    @PostMapping("/create")
-    public ResponseEntity<String> createProfile(@RequestHeader("X-User-Id") String userId, @Valid @RequestBody UserProfileUpdateRequest userProfileUpdateRequest) {
-
-        boolean isCreated = profileService.create(userId, userProfileUpdateRequest);
-
-        if (isCreated) {
-            return ResponseEntity.ok("Profile creation successful!");
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error creating profile");
-        }
+    @PutMapping("/me")
+    public ResponseEntity<String> updateMyProfile(
+            @RequestHeader("X-User-Id") String userId,
+            @Valid @RequestBody UserProfileUpdateRequest dto) {
+        boolean updated = profileService.update(userId, dto);
+        return updated
+                ? ResponseEntity.ok("Profile updated successfully!")
+                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error updating profile");
     }
-    @PutMapping("/update/{userId}")
 
-    public ResponseEntity<String> updateProfile(@PathVariable String userId, @Valid @RequestBody UserProfileUpdateRequest userProfileUpdateRequest) {
+    // ── Travel Preferences ───────────────────────────────
 
-        boolean updated = profileService.update(userId, userProfileUpdateRequest);
-
-        if (updated) {
-            return ResponseEntity.ok("Update successful!");
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error updating profile");
-        }
+    @GetMapping("/me/preferences")
+    public ResponseEntity<TravelPreference> getMyPreferences(
+            @RequestHeader("X-User-Id") String userId) {
+        return ResponseEntity.ok(travelPreferenceService.getByUserId(userId));
     }
+
+    @PutMapping("/me/preferences")
+    public ResponseEntity<String> updateMyPreferences(
+            @RequestHeader("X-User-Id") String userId,
+            @Valid @RequestBody TravelPreferenceRequest dto) {
+        travelPreferenceService.update(userId, dto);
+        return ResponseEntity.ok("Preferences updated successfully!");
+    }
+
+    // ── Interests ────────────────────────────────────────
+
+   // get all available interests (for the UI dropdown/picker)
+@GetMapping("/interests")
+public ResponseEntity<List<Interest>> getAllInterests() {
+    return ResponseEntity.ok(interestService.getAllInterests());
+}
+
+// get current user's selected interests
+@GetMapping("/me/interests")
+public ResponseEntity<Set<Interest>> getMyInterests(
+        @RequestHeader("X-User-Id") String userId) {
+    return ResponseEntity.ok(interestService.getUserInterests(userId));
+}
+
+// update current user's selected interests (send full list of selected IDs)
+@PutMapping("/me/interests")
+public ResponseEntity<String> updateMyInterests(
+        @RequestHeader("X-User-Id") String userId,
+        @RequestBody List<UUID> interestIds) {
+    interestService.updateUserInterests(userId, interestIds);
+    return ResponseEntity.ok("Interests updated!");
+}
 }

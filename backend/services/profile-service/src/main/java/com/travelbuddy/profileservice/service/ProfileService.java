@@ -22,39 +22,25 @@ public class ProfileService {
     }
 
     public UserProfile getUserById(String userId) {
-        UserProfile userProfile = userProfileRepository.findById(UUID.fromString(userId))
+        return userProfileRepository.findById(UUID.fromString(userId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-        return userProfile;
-    }
-
-    public boolean create(String userId, UserProfileUpdateRequest dto) {
-        UserProfile userProfile = new UserProfile();
-        userProfile.setId(UUID.fromString(userId));
-        userProfile.setFirstName(dto.firstName());
-        userProfile.setLastName(dto.lastName());
-        userProfile.setPhone(dto.phone());
-        userProfile.setGender(dto.gender());
-        userProfile.setNationality(dto.nationality());
-        userProfile.setBudget(dto.budget());
-
-        userProfileRepository.save(userProfile);
-        return true;
     }
 
     public boolean update(String userId, UserProfileUpdateRequest dto) {
-        Optional<UserProfile> profileOptional = userProfileRepository.findById(UUID.fromString(userId));
-
-        if (profileOptional.isEmpty()) {
-            return false;
-        }
-
-        UserProfile userProfile = profileOptional.get();
+        UserProfile userProfile = userProfileRepository.findById(UUID.fromString(userId))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         userProfile.setFirstName(dto.firstName());
         userProfile.setLastName(dto.lastName());
         userProfile.setPhone(dto.phone());
         userProfile.setGender(dto.gender());
         userProfile.setNationality(dto.nationality());
+        userProfile.setCountryOfResidence(dto.countryOfResidence());
+        userProfile.setCityOfResidence(dto.cityOfResidence());
+        userProfile.setPreferredLanguage(dto.preferredLanguage());
+        userProfile.setDateOfBirth(dto.dateOfBirth());
+        userProfile.setBio(dto.bio());
+        userProfile.setProfilePictureUrl(dto.profilePictureUrl());
         userProfile.setBudget(dto.budget());
 
         userProfileRepository.save(userProfile);
