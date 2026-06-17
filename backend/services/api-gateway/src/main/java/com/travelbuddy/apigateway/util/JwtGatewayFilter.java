@@ -26,13 +26,16 @@ public class JwtGatewayFilter implements GlobalFilter {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
 
-        if (request.getURI().getPath().contains("/api/v1/auth")) {
-            return chain.filter(exchange);
-        }
+       if (
+    path.contains("/api/v1/auth") ||
+    path.contains("/swagger-ui") ||
+    path.contains("/v3/api-docs")
+) {
+    return chain.filter(exchange);
+}
 
         HttpCookie authCookie = request.getCookies().getFirst("AUTH_TOKEN");
 
-        assert authCookie != null;
 
         if (authCookie == null) {
             log.warn("Blocked unauthorized request to path: {} - Missing AUTH_TOKEN cookie", path);
