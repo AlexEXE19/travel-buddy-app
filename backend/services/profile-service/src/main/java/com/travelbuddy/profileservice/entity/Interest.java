@@ -1,0 +1,23 @@
+package com.travelbuddy.profileservice.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.util.UUID;
+
+@Entity
+@Table(name = "interests")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Interest {
+
+    @Id
+    @GeneratedValue
+    private UUID id;
+
+    @Column(unique = true)
+    private String name;
+}
