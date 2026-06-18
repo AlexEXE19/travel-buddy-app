@@ -29,6 +29,21 @@ services:
     networks:
       - backend-net
 
+  postgres-trip:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: trip_db
+    volumes:
+      - postgres_trip_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      retries: 5
+    networks:
+      - backend-net
+
   rabbitmq:
     image: rabbitmq:3-management
     environment:
@@ -51,6 +66,7 @@ services:
       - "9411:9411"
     networks:
       - backend-net
+
   auth-service:
     build: ./backend/services/auth-service
     ports:
@@ -90,6 +106,25 @@ services:
     networks:
       - backend-net
 
+  trip-service:
+    build: ./backend/services/trip-service
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: ${TRIP_DB_URL}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+    depends_on:
+      postgres-trip:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - backend-net
+
   api-gateway:
     build: ./backend/services/api-gateway
     ports:
@@ -98,9 +133,11 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       AUTH_SERVICE_URI: ${AUTH_SERVICE_URI}
       PROFILE_SERVICE_URI: ${PROFILE_SERVICE_URI}
+      TRIP_SERVICE_URI: ${TRIP_SERVICE_URI}
     depends_on:
       - auth-service
       - profile-service
+      - trip-service
     networks:
       - backend-net
       - frontend-net
@@ -119,4 +156,5 @@ networks:
 volumes:
   postgres_auth_data:
   postgres_profile_data:
+  postgres_trip_data:
   rabbitmq_data:
