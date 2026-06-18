@@ -5,6 +5,7 @@ import com.travelbuddy.tripservice.enums.TripType;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +23,12 @@ public class Trip {
     @Id
     private UUID id;
 
+    @Column(nullable = false)
+    private String title;
+
+    @Column(length = 1000)
+    private String description;
+
     @Column(name = "creator_id", nullable = false)
     private UUID creatorId;
 
@@ -33,12 +40,16 @@ public class Trip {
     @JoinColumn(name = "itinerary_id")
     private Itinerary itinerary;
 
+    @Column(name = "start_date", nullable = false)
+    private LocalDate startDate;
+
     @ElementCollection
     @CollectionTable(
         name = "trip_members",
         joinColumns = @JoinColumn(name = "trip_id")
     )
     @Column(name = "profile_id")
+    @Builder.Default
     private List<UUID> members = new ArrayList<>();
 
     @Column(name = "max_capacity", nullable = false)

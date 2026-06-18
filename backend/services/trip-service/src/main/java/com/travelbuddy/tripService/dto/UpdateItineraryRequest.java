@@ -13,7 +13,6 @@ public record UpdateItineraryRequest(
         @Size(max = 100)
         String country,
 
-        LocalDate startDate,
 
         @Min(value = 1)
         Integer duration,

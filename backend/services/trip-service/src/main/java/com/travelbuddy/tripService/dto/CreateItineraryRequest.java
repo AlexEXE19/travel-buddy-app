@@ -14,9 +14,6 @@ public record CreateItineraryRequest(
         @NotBlank(message = "Country is required")
         String country,
 
-        @NotNull(message = "Start date is required")
-        LocalDate startDate,
-
         @Min(value = 1, message = "Duration must be at least 1 day")
         int duration,
 

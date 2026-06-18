@@ -11,6 +11,8 @@ import com.travelbuddy.tripservice.repository.TripRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import com.travelbuddy.tripservice.events.TripCreatedEvent;
+import com.travelbuddy.tripservice.service.TripProducer;
 
 import java.util.List;
 import java.util.UUID;
@@ -20,11 +22,13 @@ public class TripService {
 
     private final TripRepository tripRepository;
     private final ItineraryRepository itineraryRepository;
+    private final TripProducer tripProducer;
 
     public TripService(TripRepository tripRepository,
-                       ItineraryRepository itineraryRepository) {
+                       ItineraryRepository itineraryRepository,TripProducer tripProducer) {
         this.tripRepository = tripRepository;
         this.itineraryRepository = itineraryRepository;
+            this.tripProducer = tripProducer; 
     }
 
     public List<Trip> getTrips(String userId, TripStatus status, TripFilter filter) {
@@ -62,17 +66,32 @@ public class TripService {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not your itinerary");
             }
         }
+Trip trip = Trip.builder()
+        .id(UUID.randomUUID())
+        .title(dto.title())
+        .description(dto.description())
+        .creatorId(userUUID)
+        .type(dto.type())
+        .startDate(dto.startDate())
+        .itinerary(itinerary)
+        .maxCapacity(dto.maxCapacity())
+        .status(TripStatus.OPEN)
+        .build();
 
-        Trip trip = Trip.builder()
-                .id(UUID.randomUUID())
-                .creatorId(userUUID)
-                .type(dto.type())
-                .itinerary(itinerary)
-                .maxCapacity(dto.maxCapacity())
-                .status(TripStatus.OPEN)
-                .build();
+        Trip savedTrip = tripRepository.save(trip);
 
-        return tripRepository.save(trip);
+        Float budget = trip.getItinerary() != null
+                ? trip.getItinerary().getEstimatedBudget()
+                : null;
+
+        tripProducer.sendTripCreatedEvent(new TripCreatedEvent(
+                trip.getId(),
+                trip.getCreatorId(),
+                trip.getType(),
+                budget
+        ));
+
+        return savedTrip;
     }
 
     public void updateStatus(String userId, UUID tripId, UpdateTripStatusRequest dto) {

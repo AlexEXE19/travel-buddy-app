@@ -29,8 +29,8 @@ public class Itinerary {
     @Column(nullable = false)
     private String country;
 
-    @Column(name = "start_date", nullable = false)
-    private LocalDate startDate;
+    // @Column(name = "start_date", nullable = false)
+    // private LocalDate startDate;
 
     @Column(nullable = false)
     private int duration;

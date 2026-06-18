@@ -44,6 +44,22 @@ services:
     networks:
       - backend-net
 
+  postgres-matching:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: matching_db
+    volumes:
+      - postgres_matching_data:/var/lib/postgresql/data
+      - ./backend/services/matching-service/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      retries: 5
+    networks:
+      - backend-net
+
   rabbitmq:
     image: rabbitmq:3-management
     environment:
@@ -125,6 +141,34 @@ services:
     networks:
       - backend-net
 
+  matching-service:
+    build: ./backend/services/matching-service
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_DATASOURCE_URL: ${MATCHING_DB_URL}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      PROFILE_SERVICE_URI: ${PROFILE_SERVICE_URI}
+      EMBEDDING_SERVICE_URI: ${EMBEDDING_SERVICE_URI}
+    depends_on:
+      postgres-matching:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - backend-net
+
+  embedding-service:
+    build: ./backend/services/embedding-service
+    ports:
+      - "8085:8085"
+    networks:
+      - backend-net
+
   api-gateway:
     build: ./backend/services/api-gateway
     ports:
@@ -134,10 +178,12 @@ services:
       AUTH_SERVICE_URI: ${AUTH_SERVICE_URI}
       PROFILE_SERVICE_URI: ${PROFILE_SERVICE_URI}
       TRIP_SERVICE_URI: ${TRIP_SERVICE_URI}
+      MATCHING_SERVICE_URI: ${MATCHING_SERVICE_URI}
     depends_on:
       - auth-service
       - profile-service
       - trip-service
+      - matching-service
     networks:
       - backend-net
       - frontend-net
@@ -157,4 +203,5 @@ volumes:
   postgres_auth_data:
   postgres_profile_data:
   postgres_trip_data:
+  postgres_matching_data:
   rabbitmq_data:
