@@ -1,5 +1,5 @@
 package com.travelbuddy.matchingservice.dto;
-
+import java.util.List;
 
 public record ProfileResponse(
         String travelStyle,

@@ -6,8 +6,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.UUID;
+import java.util.Optional;
 
 public interface TripEmbeddingRepository extends JpaRepository<TripEmbedding, UUID> {
+    Optional<TripEmbedding> findByTripId(UUID tripId);
 
     @Query(value = "SELECT t.trip_id FROM trip_embeddings t " +
                    "WHERE t.creator_id != :userId " +

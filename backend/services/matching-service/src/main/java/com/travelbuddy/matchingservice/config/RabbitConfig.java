@@ -1,4 +1,4 @@
-package com.travelbuddy.matching.config;
+package com.travelbuddy.matchingservice.config;
 
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;

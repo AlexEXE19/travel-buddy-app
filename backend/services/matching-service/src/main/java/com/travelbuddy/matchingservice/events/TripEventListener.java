@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 
 @Slf4j
@@ -23,25 +22,31 @@ public class TripEventListener {
     private final ProfileClient profileClient;
     private final TripEmbeddingRepository tripEmbeddingRepository;
 
-    @RabbitListener(queues = RabbitConfig.TRIP_QUEUE)
+    @RabbitListener(queues = RabbitConfig.QUEUE)
     public void handleTripCreated(TripCreatedEvent event) {
         try {
             ProfileResponse profile = profileClient.getProfile(
-                event.creatorId().toString()
+                    event.creatorId().toString()
             );
 
             String text = buildTripText(event, profile);
 
-            List<Float> vector = embeddingClient.embed(
-                new EmbeddingRequest(text)
+            List<Float> vectorList = embeddingClient.embed(
+                    new EmbeddingRequest(text)
             ).embedding();
 
+            float[] vectorArray = new float[vectorList.size()];
+            for (int i = 0; i < vectorList.size(); i++) {
+                vectorArray[i] = vectorList.get(i);
+            }
+
             TripEmbedding tripEmbedding = tripEmbeddingRepository
-                .findByTripId(event.tripId())
-                .orElse(new TripEmbedding());
+                    .findByTripId(event.tripId())
+                    .orElse(new TripEmbedding());
 
             tripEmbedding.setTripId(event.tripId());
-            tripEmbedding.setEmbedding(vector);
+            tripEmbedding.setCreatorId(event.creatorId());
+            tripEmbedding.setEmbedding(vectorArray);
 
             tripEmbeddingRepository.save(tripEmbedding);
 
@@ -49,7 +54,7 @@ public class TripEventListener {
 
         } catch (Exception e) {
             log.error("Failed to process trip embedding for tripId {}: {}",
-                event.tripId(), e.getMessage());
+                    event.tripId(), e.getMessage());
         }
     }
 
@@ -73,8 +78,8 @@ public class TripEventListener {
 
         if (profile.interests() != null && !profile.interests().isEmpty())
             sb.append("Interests: ")
-              .append(String.join(", ", profile.interests()))
-              .append(". ");
+                    .append(String.join(", ", profile.interests()))
+                    .append(". ");
 
         return sb.toString().trim();
     }

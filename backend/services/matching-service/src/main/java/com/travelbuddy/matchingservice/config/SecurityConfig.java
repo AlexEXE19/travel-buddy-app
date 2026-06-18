@@ -1,4 +1,4 @@
-package com.travelbuddy.profileservice.config;
+package com.travelbuddy.matchingservice.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
