@@ -102,5 +102,5 @@ export async function register(formData: FormData) {
     }
   }
 
-  redirect("/profile/create")
+  redirect("/profile/edit")
 }

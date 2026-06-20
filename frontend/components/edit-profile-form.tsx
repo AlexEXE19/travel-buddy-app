@@ -40,14 +40,35 @@ const subscriptionStatusOptions = [
   { value: "enterprise", label: "Enterprise" },
 ]
 
-export function EditProfileForm() {
+interface Interest {
+  id: string
+  name: string
+}
+
+interface EditProfileFormProps {
+  profile: any
+  interests: Interest[]
+}
+
+export function EditProfileForm({ profile, interests }: EditProfileFormProps) {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [bioLength, setBioLength] = useState(0)
+  const [bioLength, setBioLength] = useState(profile.bio?.length || 0)
 
-  const [gender, setGender] = useState("")
-  const [nationality, setNationality] = useState("")
-  const [subscriptionStatus, setSubscriptionStatus] = useState("free")
+  const [gender, setGender] = useState(profile.gender || "")
+  const [nationality, setNationality] = useState(profile.nationality || "")
+  const [subscriptionStatus, setSubscriptionStatus] = useState(profile.subscriptionStatus || "free")
+  const [selectedInterests, setSelectedInterests] = useState<string[]>(
+    profile.interests?.map((i: Interest) => i.id) || []
+  )
+
+  function toggleInterest(id: string) {
+    setSelectedInterests(prev =>
+      prev.includes(id)
+        ? prev.filter(i => i !== id)
+        : [...prev, id]
+    )
+  }
 
   async function handleSubmit(formData: FormData) {
     setIsLoading(true)
@@ -56,6 +77,7 @@ export function EditProfileForm() {
     formData.append("gender", gender)
     formData.append("nationality", nationality)
     formData.append("subscriptionStatus", subscriptionStatus)
+    selectedInterests.forEach(id => formData.append("interests", id))
 
     const result = await updateProfile(formData)
 
@@ -75,6 +97,7 @@ export function EditProfileForm() {
               id="firstName"
               name="firstName"
               placeholder="John"
+              defaultValue={profile.firstName || ""}
               required
             />
           </div>
@@ -84,6 +107,7 @@ export function EditProfileForm() {
               id="lastName"
               name="lastName"
               placeholder="Doe"
+              defaultValue={profile.lastName || ""}
               required
             />
           </div>
@@ -97,6 +121,7 @@ export function EditProfileForm() {
               name="phone"
               type="tel"
               placeholder="+1 (555) 000-0000"
+              defaultValue={profile.phone || ""}
             />
           </div>
           <div className="space-y-2">
@@ -105,6 +130,7 @@ export function EditProfileForm() {
               id="dateOfBirth"
               name="dateOfBirth"
               type="date"
+              defaultValue={profile.dateOfBirth || ""}
             />
           </div>
         </div>
@@ -149,6 +175,7 @@ export function EditProfileForm() {
               id="countryOfResidence"
               name="countryOfResidence"
               placeholder="United States"
+              defaultValue={profile.countryOfResidence || ""}
             />
           </div>
           <div className="space-y-2">
@@ -157,6 +184,7 @@ export function EditProfileForm() {
               id="cityOfResidence"
               name="cityOfResidence"
               placeholder="New York"
+              defaultValue={profile.cityOfResidence || ""}
             />
           </div>
         </div>
@@ -168,6 +196,7 @@ export function EditProfileForm() {
               id="preferredLanguage"
               name="preferredLanguage"
               placeholder="English"
+              defaultValue={profile.preferredLanguage || ""}
             />
           </div>
           <div className="space-y-2">
@@ -179,6 +208,7 @@ export function EditProfileForm() {
               placeholder="5000"
               min="0"
               step="100"
+              defaultValue={profile.budget || ""}
             />
           </div>
         </div>
@@ -190,6 +220,7 @@ export function EditProfileForm() {
             name="profilePictureUrl"
             type="url"
             placeholder="https://example.com/avatar.jpg"
+            defaultValue={profile.profilePictureUrl || ""}
           />
         </div>
 
@@ -198,10 +229,11 @@ export function EditProfileForm() {
           <Textarea
             id="bio"
             name="bio"
-            placeholder="Tell us about your travel style, favorite destinations, or what you are looking for in a companion..."
+            placeholder="Tell us about your travel style..."
             maxLength={1000}
             className="resize-none"
             rows={4}
+            defaultValue={profile.bio || ""}
             onChange={(e) => setBioLength(e.target.value.length)}
           />
           <p className="text-xs text-muted-foreground text-right">
@@ -223,6 +255,34 @@ export function EditProfileForm() {
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="space-y-3">
+          <Label>Interests</Label>
+          <div className="flex flex-wrap gap-2">
+            {interests.map((interest) => {
+              const isSelected = selectedInterests.includes(interest.id)
+              return (
+                <button
+                  key={interest.id}
+                  type="button"
+                  onClick={() => toggleInterest(interest.id)}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors
+                    ${isSelected
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background text-foreground border-border hover:border-primary"
+                    }`}
+                >
+                  {interest.name}
+                </button>
+              )
+            })}
+          </div>
+          {selectedInterests.length > 0 && (
+            <p className="text-xs text-muted-foreground">
+              {selectedInterests.length} interest{selectedInterests.length > 1 ? "s" : ""} selected
+            </p>
+          )}
         </div>
 
         {error && (

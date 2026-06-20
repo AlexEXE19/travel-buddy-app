@@ -1,38 +1,24 @@
-
-"use client"
-
-import { useState } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Compass } from "lucide-react"
+import { getInterests, getProfile } from "@/actions/profile"
 import { EditProfileForm } from "@/components/edit-profile-form"
+import { redirect } from "next/navigation"
 
+export default async function EditProfilePage() {
+  const [profile, interests] = await Promise.all([
+    getProfile(),
+    getInterests(),
+  ])
 
+    console.log("interests:", interests)
+  console.log("interests length:", interests?.length)
 
-export default function CreateProfilePage() {
-
+  if (!profile) redirect("/login")
 
   return (
-    <div className="min-h-screen flex flex-col">
-
-      <main className="flex-1 flex items-center justify-center px-4 py-12">
-        <Card className="w-full max-w-2xl">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl">Complete Your Profile</CardTitle>
-            <CardDescription>
-              Tell us about yourself to help find the perfect travel companions
-            </CardDescription>
-          </CardHeader>
-         <EditProfileForm></EditProfileForm>
-        </Card>
-      </main>
+    <div className="container mx-auto px-4 py-8 md:py-12">
+      <div className="max-w-2xl mx-auto">
+        <h1 className="text-2xl font-bold mb-6">Edit Profile</h1>
+        <EditProfileForm profile={profile} interests={interests} />
+      </div>
     </div>
   )
 }
-

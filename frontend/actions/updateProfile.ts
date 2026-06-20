@@ -1,65 +1,63 @@
 'use server'
 
+import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { API_URL } from "@/lib/utils"
-import { cookies } from "next/headers"
 
 export async function updateProfile(formData: FormData) {
-  const firstName = formData.get("firstName") as string
-  const lastName = formData.get("lastName") as string
-  const phone = formData.get("phone") as string
-  const dateOfBirth = formData.get("dateOfBirth") as string
-  const gender = formData.get("gender") as string
-  const nationality = formData.get("nationality") as string
-  const countryOfResidence = formData.get("countryOfResidence") as string
-  const cityOfResidence = formData.get("cityOfResidence") as string
-  const preferredLanguage = formData.get("preferredLanguage") as string
-  const budgetRaw = formData.get("budget") as string
-  const profilePictureUrl = formData.get("profilePictureUrl") as string
-  const bio = formData.get("bio") as string
-  const subscriptionStatus = formData.get("subscriptionStatus") as string
-
-  if (!firstName || !lastName) {
-    return { error: "First name and last name are required fields" }
-  }
-
-  const budget = budgetRaw ? parseFloat(budgetRaw) : null
-
   const cookieStore = await cookies()
-  const token = cookieStore.get("AUTH_TOKEN")?.value
+  const token = cookieStore.get("AUTH_TOKEN")
 
-  let res: Response
+  if (!token) return { error: "Not authenticated" }
+
+  const interestIds = formData.getAll("interests") as string[]
+
+  const body = {
+    firstName: formData.get("firstName"),
+    lastName: formData.get("lastName"),
+    phone: formData.get("phone"),
+    dateOfBirth: formData.get("dateOfBirth") || null,
+    gender: formData.get("gender"),
+    nationality: formData.get("nationality"),
+    countryOfResidence: formData.get("countryOfResidence"),
+    cityOfResidence: formData.get("cityOfResidence"),
+    preferredLanguage: formData.get("preferredLanguage"),
+    budget: formData.get("budget") ? Number(formData.get("budget")) : null,
+    profilePictureUrl: formData.get("profilePictureUrl"),
+    bio: formData.get("bio"),
+    subscriptionStatus: formData.get("subscriptionStatus"),
+  }
 
   try {
-    res = await fetch(`${API_URL}/api/v1/profile/me`, {
+    // update profile
+    const profileRes = await fetch(`${API_URL}/api/v1/profile/me`, {
       method: "PUT",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
-        ...(token && { "Authorization": `Bearer ${token}` })
+        Cookie: `AUTH_TOKEN=${token.value}`,
       },
-      body: JSON.stringify({
-        firstName,
-        lastName,
-        phone: phone || null,
-        dateOfBirth: dateOfBirth || null,
-        gender: gender || null,
-        nationality: nationality || null,
-        countryOfResidence: countryOfResidence || null,
-        cityOfResidence: cityOfResidence || null,
-        preferredLanguage: preferredLanguage || null,
-        budget,
-        profilePictureUrl: profilePictureUrl || null,
-        bio: bio || null,
-        subscriptionStatus
-      }),
+      body: JSON.stringify(body),
     })
-  } catch {
-    return { error: "Could not connect to profile service." }
-  }
 
-  if (res.status === 401) return { error: "Unauthorized access!" }
-  if (res.status === 400) return { error: "Invalid profile data provided!" }
-  if (!res.ok) return { error: "An error has occurred, try again later!" }
+    if (!profileRes.ok) return { error: "Failed to update profile" }
+
+    // update interests separately
+    if (interestIds.length > 0) {
+      const interestsRes = await fetch(`${API_URL}/api/v1/profile/me/interests`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: `AUTH_TOKEN=${token.value}`,
+        },
+        body: JSON.stringify(interestIds),
+      })
+
+      if (!interestsRes.ok) return { error: "Failed to update interests" }
+    }
+
+  } catch {
+    return { error: "Could not connect to server" }
+  }
 
   redirect("/profile")
 }

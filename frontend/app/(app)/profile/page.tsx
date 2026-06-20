@@ -1,32 +1,27 @@
+import { redirect } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { User, Phone, Globe, Wallet, Crown, Pencil } from "lucide-react"
+import { User, Phone, Globe, Wallet, Crown, Pencil, MapPin, Calendar } from "lucide-react"
+import { getProfile } from "@/actions/profile"
 
-// Mock user data - in a real app, this would come from the database
-const mockUser = {
-  firstName: "John",
-  lastName: "Doe",
-  phone: "+1 (555) 123-4567",
-  gender: "Male",
-  nationality: "United States",
-  budget: 5000,
-  subscriptionStatus: "Premium",
-}
+export default async function ProfilePage() {
+  const profile = await getProfile()
 
-const details = [
-  { icon: Phone, label: "Phone", value: mockUser.phone },
-  { icon: User, label: "Gender", value: mockUser.gender },
-  { icon: Globe, label: "Nationality", value: mockUser.nationality },
-  {
-    icon: Wallet,
-    label: "Travel Budget",
-    value: mockUser.budget ? `$${mockUser.budget.toLocaleString()}` : null,
-  },
-]
+  if (!profile) redirect("/login")
 
-export default function ProfilePage() {
+  const details = [
+    { icon: Phone, label: "Phone", value: profile.phone },
+    { icon: User, label: "Gender", value: profile.gender },
+    { icon: Globe, label: "Nationality", value: profile.nationality },
+    { icon: Wallet, label: "Travel Budget", value: profile.budget ? `$${profile.budget.toLocaleString()}` : null },
+    { icon: MapPin, label: "Country", value: profile.countryOfResidence },
+    { icon: MapPin, label: "City", value: profile.cityOfResidence },
+    { icon: Globe, label: "Language", value: profile.preferredLanguage },
+    { icon: Calendar, label: "Date of Birth", value: profile.dateOfBirth },
+  ]
+
   return (
     <div className="container mx-auto px-4 py-8 md:py-12">
       <div className="max-w-2xl mx-auto flex flex-col gap-6">
@@ -46,12 +41,17 @@ export default function ProfilePage() {
               <User className="h-12 w-12 text-primary" />
             </div>
             <h2 className="text-2xl font-bold text-foreground">
-              {mockUser.firstName} {mockUser.lastName}
+              {profile.firstName || "Traveler"} {profile.lastName || ""}
             </h2>
-            <Badge className="bg-accent text-accent-foreground hover:bg-accent">
-              <Crown className="h-3 w-3 mr-1" />
-              {mockUser.subscriptionStatus}
-            </Badge>
+            {profile.bio && (
+              <p className="text-muted-foreground text-sm max-w-sm">{profile.bio}</p>
+            )}
+            {profile.subscriptionStatus && (
+              <Badge className="bg-accent text-accent-foreground hover:bg-accent">
+                <Crown className="h-3 w-3 mr-1" />
+                {profile.subscriptionStatus}
+              </Badge>
+            )}
           </CardContent>
         </Card>
 
