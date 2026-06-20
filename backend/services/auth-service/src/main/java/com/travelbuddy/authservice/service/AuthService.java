@@ -2,6 +2,7 @@ package com.travelbuddy.authservice.service;
 
 import com.travelbuddy.authservice.entity.UserCredentials;
 import com.travelbuddy.authservice.events.UserRegisteredEvent;
+import com.travelbuddy.authservice.exception.EmailAlreadyInUseException;
 import com.travelbuddy.authservice.repository.UserCredentialsRepository;
 import com.travelbuddy.authservice.util.JwtUtil;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -38,7 +39,7 @@ public class AuthService {
     }
 
     public String register(String email, String rawPassword) {
-        if (userCredentialsRepository.existsByEmail(email)) throw new BadCredentialsException("Email already in use");
+        if (userCredentialsRepository.existsByEmail(email)) throw new EmailAlreadyInUseException("Email already in use");
 
         UserCredentials userCredentials = new UserCredentials();
         userCredentials.setEmail(email);

@@ -23,4 +23,11 @@ public class GlobalExceptionHandler {
                 .body(ex.getMessage());
     }
 
+    @ExceptionHandler(EmailAlreadyInUseException.class)
+    public ResponseEntity<String> handleEmailAlreadyInUseException(EmailAlreadyInUseException ex) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(ex.getMessage());
+    }
+
 }
