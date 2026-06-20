@@ -1,48 +1,48 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
+/* TravelBuddy palette: Vibrant Teal, Electric Violet, Ice White, Dark Zinc */
 :root {
-  /* Light Yellow #fdfcdc - background */
-  --background: #fdfcdc;
-  --foreground: #1a3a4a;
-  /* Card on Light Yellow */
+  /* Ice White #FAFAFA - background */
+  --background: #fafafa;
+  /* Dark Zinc #18181B - text */
+  --foreground: #18181b;
   --card: #ffffff;
-  --card-foreground: #1a3a4a;
+  --card-foreground: #18181b;
   --popover: #ffffff;
-  --popover-foreground: #1a3a4a;
-  /* Cerulean #0081a7 - primary */
-  --primary: #0081a7;
-  --primary-foreground: #fdfcdc;
-  /* Soft Apricot #fed9b7 - secondary */
-  --secondary: #fed9b7;
-  --secondary-foreground: #1a3a4a;
-  --muted: #fef3e8;
-  --muted-foreground: #5a7a8a;
-  /* Tropical Teal #00afb9 - accent */
-  --accent: #00afb9;
-  --accent-foreground: #ffffff;
-  /* Vibrant Coral #f07167 - destructive/CTA */
-  --destructive: #f07167;
-  --destructive-foreground: #ffffff;
-  --border: #e8dcc8;
-  --input: #fef8f0;
-  --ring: #0081a7;
-  /* Chart colors using the palette */
-  --chart-1: #0081a7;
-  --chart-2: #00afb9;
-  --chart-3: #f07167;
-  --chart-4: #fed9b7;
-  --chart-5: #fdfcdc;
+  --popover-foreground: #18181b;
+  /* Vibrant Teal #0891B2 - primary brand */
+  --primary: #0891b2;
+  --primary-foreground: #fafafa;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  /* Electric Violet #7C3AED - accent */
+  --accent: #7c3aed;
+  --accent-foreground: #fafafa;
+  --destructive: #dc2626;
+  --destructive-foreground: #fafafa;
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+  --ring: #0891b2;
+  /* Chart colors */
+  --chart-1: #0891b2;
+  --chart-2: #7c3aed;
+  --chart-3: #06b6d4;
+  --chart-4: #a78bfa;
+  --chart-5: #22d3ee;
   --radius: 0.625rem;
   --sidebar: #ffffff;
-  --sidebar-foreground: #1a3a4a;
-  --sidebar-primary: #0081a7;
-  --sidebar-primary-foreground: #fdfcdc;
-  --sidebar-accent: #fed9b7;
-  --sidebar-accent-foreground: #1a3a4a;
-  --sidebar-border: #e8dcc8;
-  --sidebar-ring: #0081a7;
+  --sidebar-foreground: #18181b;
+  --sidebar-primary: #0891b2;
+  --sidebar-primary-foreground: #fafafa;
+  --sidebar-accent: #f4f4f5;
+  --sidebar-accent-foreground: #18181b;
+  --sidebar-border: #e4e4e7;
+  --sidebar-ring: #0891b2;
 }
 
 .dark {
@@ -81,8 +81,8 @@
 }
 
 @theme inline {
-  --font-sans: "Geist", "Geist Fallback";
-  --font-mono: "Geist Mono", "Geist Mono Fallback";
+  --font-sans: 'Geist', 'Geist Fallback';
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
