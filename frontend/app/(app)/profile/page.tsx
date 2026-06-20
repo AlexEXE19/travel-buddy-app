@@ -3,7 +3,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { User, Phone, Globe, Wallet, Crown, Pencil, MapPin, Calendar } from "lucide-react"
+import { User, Phone, Globe, Wallet, Crown, Pencil, MapPin, Calendar, Compass, CloudSun, Train, Home } from "lucide-react"
 import { getProfile } from "@/actions/profile"
 
 export default async function ProfilePage() {
@@ -20,7 +20,15 @@ export default async function ProfilePage() {
     { icon: MapPin, label: "City", value: profile.cityOfResidence },
     { icon: Globe, label: "Language", value: profile.preferredLanguage },
     { icon: Calendar, label: "Date of Birth", value: profile.dateOfBirth },
+    { icon: Compass, label: "Travel Type", value: profile.preferredTravelType },
+    { icon: CloudSun, label: "Climate Preference", value: profile.preferredClimate },
+    { icon: Train, label: "Transport Preference", value: profile.preferredTransport },
+    { icon: Home, label: "Accommodation Style", value: profile.preferredAccommodation },
   ]
+
+  const mappedInterests = profile.interests 
+    ? profile.interests.split(",").map((i: string) => i.trim()).filter(Boolean)
+    : []
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-12">
@@ -29,7 +37,7 @@ export default async function ProfilePage() {
           <h1 className="text-2xl font-bold text-foreground">My Profile</h1>
           <Link href="/profile/edit">
             <Button variant="outline" size="sm">
-              <Pencil className="h-4 w-4" />
+              <Pencil className="h-4 w-4 mr-2" />
               Edit
             </Button>
           </Link>
@@ -37,9 +45,17 @@ export default async function ProfilePage() {
 
         <Card>
           <CardContent className="flex flex-col items-center gap-3 pt-8 text-center">
-            <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center">
-              <User className="h-12 w-12 text-primary" />
-            </div>
+            {profile.profilePictureUrl ? (
+              <img 
+                src={profile.profilePictureUrl} 
+                alt={`${profile.firstName || "User"}'s avatar`} 
+                className="w-24 h-24 rounded-full object-cover border-2 border-border"
+              />
+            ) : (
+              <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center">
+                <User className="h-12 w-12 text-primary" />
+              </div>
+            )}
             <h2 className="text-2xl font-bold text-foreground">
               {profile.firstName || "Traveler"} {profile.lastName || ""}
             </h2>
@@ -49,7 +65,7 @@ export default async function ProfilePage() {
             {profile.subscriptionStatus && (
               <Badge className="bg-accent text-accent-foreground hover:bg-accent">
                 <Crown className="h-3 w-3 mr-1" />
-                {profile.subscriptionStatus}
+                {profile.subscriptionStatus.toUpperCase()}
               </Badge>
             )}
           </CardContent>
@@ -65,12 +81,27 @@ export default async function ProfilePage() {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">{item.label}</p>
-                  <p className="font-medium text-foreground">{item.value || "Not provided"}</p>
+                  <p className="font-medium text-foreground capitalize">{item.value || "Not provided"}</p>
                 </div>
               </div>
             )
           })}
         </div>
+
+        {mappedInterests.length > 0 && (
+          <Card>
+            <CardContent className="pt-6 space-y-3">
+              <h3 className="text-sm font-semibold text-foreground">Interests</h3>
+              <div className="flex flex-wrap gap-2">
+                {mappedInterests.map((interest: string) => (
+                  <Badge key={interest} variant="secondary" className="px-3 py-1 text-xs">
+                    {interest}
+                  </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   )

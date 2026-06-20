@@ -30,14 +30,3 @@ export async function getProfile() {
   }
 }
 
-export async function getInterests() {
-  try {
-    const res = await fetch(`${API_URL}/api/v1/profile/interests`, {
-      cache: "no-store",
-    })
-    if (!res.ok) return []
-    return res.json()
-  } catch {
-    return []
-  }
-}

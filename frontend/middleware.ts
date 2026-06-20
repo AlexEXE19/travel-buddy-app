@@ -6,9 +6,9 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const token = request.cookies.get("AUTH_TOKEN")?.value
 
-  if (pathname === "/" && token) {
-    return NextResponse.redirect(new URL("/profile", request.url))
-  }
+  // if (pathname === "/" && token) {
+  //   return NextResponse.redirect(new URL("/profile", request.url))
+  // }
 
   if (!unprotectedRoutes.includes(pathname) && !token) {
     return NextResponse.redirect(new URL("/login", request.url))

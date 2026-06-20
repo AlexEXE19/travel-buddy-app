@@ -1,0 +1,22 @@
+export const interests: string[] = [
+  'Photography',
+  'Hiking',
+  'Cooking',
+  'Music',
+  'Reading',
+  'Gaming',
+  'Fitness',
+  'Art',
+  'Cinema',
+  'Dancing',
+  'Yoga',
+  'Cycling',
+  'Swimming',
+  'Surfing',
+  'Skiing',
+  'Climbing',
+  'Meditation',
+  'Volunteering',
+  'Languages',
+  'Astronomy'
+];

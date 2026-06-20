@@ -10,8 +10,6 @@ export async function updateProfile(formData: FormData) {
 
   if (!token) return { error: "Not authenticated" }
 
-  const interestIds = formData.getAll("interests") as string[]
-
   const body = {
     firstName: formData.get("firstName"),
     lastName: formData.get("lastName"),
@@ -26,10 +24,14 @@ export async function updateProfile(formData: FormData) {
     profilePictureUrl: formData.get("profilePictureUrl"),
     bio: formData.get("bio"),
     subscriptionStatus: formData.get("subscriptionStatus"),
+    interests: formData.getAll("interests").join(","),
+    preferredTravelType: formData.get("preferredTravelType"),
+    preferredClimate: formData.get("preferredClimate"),
+    preferredTransport: formData.get("preferredTransport"),
+    preferredAccommodation: formData.get("preferredAccommodation")
   }
 
   try {
-    // update profile
     const profileRes = await fetch(`${API_URL}/api/v1/profile/me`, {
       method: "PUT",
       headers: {
@@ -40,20 +42,6 @@ export async function updateProfile(formData: FormData) {
     })
 
     if (!profileRes.ok) return { error: "Failed to update profile" }
-
-    // update interests separately
-    if (interestIds.length > 0) {
-      const interestsRes = await fetch(`${API_URL}/api/v1/profile/me/interests`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Cookie: `AUTH_TOKEN=${token.value}`,
-        },
-        body: JSON.stringify(interestIds),
-      })
-
-      if (!interestsRes.ok) return { error: "Failed to update interests" }
-    }
 
   } catch {
     return { error: "Could not connect to server" }
