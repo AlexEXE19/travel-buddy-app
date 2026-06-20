@@ -4,12 +4,9 @@ import com.travelbuddy.profileservice.dto.UserProfileUpdateRequest;
 import com.travelbuddy.profileservice.entity.UserProfile;
 import com.travelbuddy.profileservice.repository.UserProfileRepository;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -42,6 +39,11 @@ public class ProfileService {
         userProfile.setBio(dto.bio());
         userProfile.setProfilePictureUrl(dto.profilePictureUrl());
         userProfile.setBudget(dto.budget());
+        userProfile.setInterests(dto.interests());
+        userProfile.setPreferredTravelType(dto.preferredTravelType());
+        userProfile.setPreferredClimate(dto.preferredClimate());
+        userProfile.setPreferredTransport(dto.preferredTransport());
+        userProfile.setPreferredAccommodation(dto.preferredAccommodation());
 
         userProfileRepository.save(userProfile);
         return true;

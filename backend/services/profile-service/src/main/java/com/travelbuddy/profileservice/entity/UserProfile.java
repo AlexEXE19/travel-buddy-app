@@ -2,16 +2,9 @@ package com.travelbuddy.profileservice.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.util.UUID;
-
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Set;
-import java.util.HashSet;
 
 @Entity
 @Table(name = "user_profiles")
@@ -58,6 +51,21 @@ public class UserProfile {
 
     private Float budget;
 
+    @Column(name = "preferred_travel_type")
+    private String preferredTravelType;
+
+    @Column(name = "preferred_climate")
+    private String preferredClimate;
+
+    @Column(name = "preferred_transport")
+    private String preferredTransport;
+
+    @Column(name = "preferred_accommodation")
+    private String preferredAccommodation;
+
+    @Column(name = "interests", length = 1000)
+    private String interests;
+
     @Column(name = "subscription_status")
     private String subscriptionStatus;
 
@@ -67,7 +75,7 @@ public class UserProfile {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-     @PrePersist
+    @PrePersist
     public void prePersist() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
@@ -77,12 +85,4 @@ public class UserProfile {
     public void preUpdate() {
         updatedAt = LocalDateTime.now();
     }
-
-    @ManyToMany
-@JoinTable(
-    name = "user_interests",
-    joinColumns = @JoinColumn(name = "profile_id"),
-    inverseJoinColumns = @JoinColumn(name = "interest_id")
-)
-private Set<Interest> interests = new HashSet<>();
 }

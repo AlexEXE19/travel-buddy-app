@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Size;
 public record TravelPreferenceRequest(
 
         @Size(max = 50)
-        String travelStyle,
+        String preferredTravelType,
 
         @Size(max = 50)
         String preferredClimate,
