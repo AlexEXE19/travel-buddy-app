@@ -192,6 +192,8 @@ services:
     build: ./frontend
     ports:
       - "3000:3000"
+    environment:
+      API_GATEWAY_URI: ${API_GATEWAY_URI}
     networks:
       - frontend-net
 
