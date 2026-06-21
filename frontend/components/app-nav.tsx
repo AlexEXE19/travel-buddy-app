@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import {
   Compass,
   Flame,
@@ -12,9 +13,11 @@ import {
   User,
   Settings,
   LogOut,
+  CalendarDays,
 } from "lucide-react"
 import { signoutAndRedirect } from '@/actions/signout';
 import { useTransition } from "react"
+import { calendarTrips } from "@/data/trips-showcase"
 
 const navItems = [
   { href: "/swipe", label: "Discover", icon: Flame },
@@ -65,6 +68,43 @@ export function AppNav() {
                 </Link>
               )
             })}
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm" className="ml-1 gap-2 text-muted-foreground hover:text-foreground">
+                  <CalendarDays className="h-4 w-4" />
+                  Calendar
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-96 p-0">
+                <div className="border-b px-4 py-3">
+                  <p className="text-sm font-semibold text-foreground">Trip calendar</p>
+                  <p className="text-xs text-muted-foreground">A quick look at your upcoming and current routes.</p>
+                </div>
+
+                <div className="max-h-96 overflow-auto p-3">
+                  <div className="space-y-3">
+                    {calendarTrips.map((trip) => (
+                      <Link
+                        key={trip.id}
+                        href="/trips"
+                        className="block rounded-xl border p-3 transition-colors hover:bg-accent/50"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-medium text-foreground">{trip.title}</p>
+                            <p className="text-xs text-muted-foreground">{trip.destination}</p>
+                          </div>
+                          <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                            {trip.dates}
+                          </span>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
           </nav>
 
           <Link href="/" className="hidden md:block">

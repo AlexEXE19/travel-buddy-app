@@ -9,6 +9,8 @@ import { CardContent, CardFooter } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { updateProfile } from "@/actions/updateProfile"
 import { interests } from "@/data/interests"
+import { travelTypeOptions } from "@/data/travel-types"
+import { Check, Search } from "lucide-react"
 
 const genderOptions = [
   { value: "male", label: "Male" },
@@ -39,17 +41,6 @@ const subscriptionStatusOptions = [
   { value: "basic", label: "Basic" },
   { value: "premium", label: "Premium" },
   { value: "enterprise", label: "Enterprise" },
-]
-
-const travelTypeOptions = [
-  { value: "solo", label: "Solo Travel" },
-  { value: "backpacking", label: "Backpacking" },
-  { value: "luxury", label: "Luxury Travel" },
-  { value: "adventure", label: "Adventure & Sports" },
-  { value: "leisure", label: "Leisure & Beach" },
-  { value: "road-trip", label: "Road Trips" },
-  { value: "cultural", label: "Cultural & Historical" },
-  { value: "business", label: "Business Travel" },
 ]
 
 const climateOptions = [
@@ -84,11 +75,14 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [bioLength, setBioLength] = useState(profile.bio?.length || 0)
+  const [travelTypeSearch, setTravelTypeSearch] = useState("")
 
   const [gender, setGender] = useState(profile.gender || "")
   const [nationality, setNationality] = useState(profile.nationality || "")
   const [subscriptionStatus, setSubscriptionStatus] = useState(profile.subscriptionStatus || "free")
-  const [preferredTravelType, setPreferredTravelType] = useState(profile.preferredTravelType || "")
+  const [preferredTravelTypes, setPreferredTravelTypes] = useState<string[]>(
+    profile.preferredTravelType ? profile.preferredTravelType.split(",").filter(Boolean) : [],
+  )
   const [preferredClimate, setPreferredClimate] = useState(profile.preferredClimate || "")
   const [preferredTransport, setPreferredTransport] = useState(profile.preferredTransport || "")
   const [preferredAccommodation, setPreferredAccommodation] = useState(profile.preferredAccommodation || "")
@@ -102,14 +96,28 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
     )
   }
 
+  function toggleTravelType(id: string) {
+    setPreferredTravelTypes((current) =>
+      current.includes(id)
+        ? current.filter((value) => value !== id)
+        : [...current, id],
+    )
+  }
+
   async function handleSubmit(formData: FormData) {
     setIsLoading(true)
     setError(null)
 
+    if (preferredTravelTypes.length < 2) {
+      setError("Select at least 2 travel styles")
+      setIsLoading(false)
+      return
+    }
+
     formData.append("gender", gender)
     formData.append("nationality", nationality)
     formData.append("subscriptionStatus", subscriptionStatus)
-    formData.append("preferredTravelType", preferredTravelType)
+    preferredTravelTypes.forEach(type => formData.append("preferredTravelType", type))
     formData.append("preferredClimate", preferredClimate)
     formData.append("preferredTransport", preferredTransport)
     formData.append("preferredAccommodation", preferredAccommodation)
@@ -250,20 +258,54 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
         </div>
 
         <div className="grid sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="preferredTravelType">Preferred Travel Type</Label>
-            <Select value={preferredTravelType} onValueChange={setPreferredTravelType}>
-              <SelectTrigger id="preferredTravelType">
-                <SelectValue placeholder="Select travel style" />
-              </SelectTrigger>
-              <SelectContent>
-                {travelTypeOptions.map(option => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="space-y-3 sm:col-span-2">
+            <div className="flex items-end justify-between gap-3">
+              <div className="space-y-1">
+                <Label>Preferred Travel Types</Label>
+                <p className="text-xs text-muted-foreground">Pick at least 2 styles so matching can be more precise.</p>
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {preferredTravelTypes.length} selected
+              </span>
+            </div>
+
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={travelTypeSearch}
+                onChange={(event) => setTravelTypeSearch(event.target.value)}
+                placeholder="Search travel styles"
+                className="pl-9"
+              />
+            </div>
+
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {travelTypeOptions
+                .filter(option => option.label.toLowerCase().includes(travelTypeSearch.toLowerCase()))
+                .map(option => {
+                  const isSelected = preferredTravelTypes.includes(option.value)
+
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => toggleTravelType(option.value)}
+                      className={`flex items-center justify-between rounded-xl border px-3 py-2 text-left text-sm transition-colors ${
+                        isSelected
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border bg-background hover:border-primary"
+                      }`}
+                    >
+                      <span>{option.label}</span>
+                      <Check className={`h-4 w-4 ${isSelected ? "opacity-100" : "opacity-0"}`} />
+                    </button>
+                  )
+                })}
+            </div>
+
+            {preferredTravelTypes.length < 2 ? (
+              <p className="text-xs text-muted-foreground">Select at least 2 travel styles.</p>
+            ) : null}
           </div>
           <div className="space-y-2">
             <Label htmlFor="preferredClimate">Preferred Climate</Label>

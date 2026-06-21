@@ -25,7 +25,7 @@ export async function updateProfile(formData: FormData) {
     bio: formData.get("bio"),
     subscriptionStatus: formData.get("subscriptionStatus"),
     interests: formData.getAll("interests").join(","),
-    preferredTravelType: formData.get("preferredTravelType"),
+    preferredTravelType: formData.getAll("preferredTravelType").join(","),
     preferredClimate: formData.get("preferredClimate"),
     preferredTransport: formData.get("preferredTransport"),
     preferredAccommodation: formData.get("preferredAccommodation")
