@@ -1,6 +1,7 @@
 package com.travelbuddy.profileservice.controller;
 
 import com.travelbuddy.profileservice.dto.UserProfileUpdateRequest;
+import com.travelbuddy.profileservice.dto.MatchingClientResponse;
 
 import com.travelbuddy.profileservice.entity.UserProfile;
 import com.travelbuddy.profileservice.repository.UserProfileRepository;
@@ -41,5 +42,12 @@ public class UserProfileController {
                 ? ResponseEntity.ok("Profile updated successfully!")
                 : ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error updating profile");
     }
+
+    @GetMapping("/for-matching")
+    public ResponseEntity<MatchingClientResponse> getProfileForMatching(
+            @RequestHeader("X-User-Id") String userId) {
+        return ResponseEntity.ok(profileService.getUserForMatchingById(userId));
+    }
+
 
 }

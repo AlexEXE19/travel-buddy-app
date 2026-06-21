@@ -1,6 +1,8 @@
 package com.travelbuddy.profileservice.service;
 
 import com.travelbuddy.profileservice.dto.UserProfileUpdateRequest;
+import com.travelbuddy.profileservice.dto.MatchingClientResponse;
+
 import com.travelbuddy.profileservice.entity.UserProfile;
 import com.travelbuddy.profileservice.repository.UserProfileRepository;
 import org.springframework.http.HttpStatus;
@@ -20,6 +22,15 @@ public class ProfileService {
 
     public UserProfile getUserById(String userId) {
         return userProfileRepository.findById(UUID.fromString(userId))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+    }
+
+    public MatchingClientResponse getUserForMatchingById(String userId) {
+        return userProfileRepository.findById(UUID.fromString(userId))
+                .map(profile -> MatchingClientResponse.builder()
+                        .id(profile.getId())
+                        .embeddingText(profile.toEmbeddingText())
+                        .build())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
     }
 
@@ -48,4 +59,6 @@ public class ProfileService {
         userProfileRepository.save(userProfile);
         return true;
     }
+
+
 }
