@@ -1,9 +1,14 @@
 package com.travelbuddy.tripservice.service;
 
 import com.travelbuddy.tripservice.dto.CreateTripRequest;
+import com.travelbuddy.tripservice.dto.CreateItineraryRequest;
+
+
 import com.travelbuddy.tripservice.dto.UpdateTripStatusRequest;
 import com.travelbuddy.tripservice.entity.Itinerary;
 import com.travelbuddy.tripservice.entity.Trip;
+import com.travelbuddy.tripservice.entity.ItineraryStop;
+
 import com.travelbuddy.tripservice.enums.TripFilter;
 import com.travelbuddy.tripservice.enums.TripStatus;
 import com.travelbuddy.tripservice.repository.ItineraryRepository;
@@ -31,23 +36,18 @@ public class TripService {
             this.tripProducer = tripProducer; 
     }
 
-    public List<Trip> getTrips(String userId, TripStatus status, TripFilter filter) {
+    public List<Trip> getUserTrips(String userId) {
         UUID userUUID = UUID.fromString(userId);
-
-        return switch (filter) {
-            case MY_TRIPS -> status != null
-                    ? tripRepository.findByCreatorIdAndStatus(userUUID, status)
-                    : tripRepository.findByCreatorId(userUUID);
-
-            case JOINED_TRIPS -> status != null
-                    ? tripRepository.findByMemberIdAndStatus(userUUID, status)
-                    : tripRepository.findByMemberId(userUUID);
-
-            case ALL -> status != null
-                    ? tripRepository.findByStatus(status)
-                    : tripRepository.findByStatus(TripStatus.OPEN);
+            return tripRepository.findByCreatorId(userUUID);
         };
-    }
+
+
+public List<Trip> getUserJoinedTrips(String userId) {
+    UUID userUUID = UUID.fromString(userId);
+    return tripRepository.findByMemberId(userUUID);
+};
+
+
 
     public Trip getTripById(UUID tripId) {
         return tripRepository.findById(tripId)
@@ -55,43 +55,59 @@ public class TripService {
     }
 
     public Trip createTrip(String userId, CreateTripRequest dto) {
-        UUID userUUID = UUID.fromString(userId);
+        UUID tripId = UUID.randomUUID();
 
-        Itinerary itinerary = null;
-        if (dto.itineraryId() != null) {
-            itinerary = itineraryRepository.findById(dto.itineraryId())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Itinerary not found"));
+        Trip trip = Trip.builder()
+                .id(tripId)
+                .title(dto.title())
+                .description(dto.description())
+                .creatorId(UUID.fromString(userId))
+                .tripType(dto.tripType())
+                .maxCapacity(dto.maxCapacity())
+                .status(TripStatus.OPEN)
+                .build();
 
-            if (!itinerary.getCreatorId().equals(userUUID)) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not your itinerary");
+        trip = tripRepository.save(trip);
+
+        if (dto.itinerary() != null) {
+            CreateItineraryRequest iDto = dto.itinerary();
+
+            Itinerary itinerary = Itinerary.builder()
+                    .id(UUID.randomUUID())
+                    .trip(trip)
+                    .startDateTime(iDto.startDateTime())
+                    .startLocationName(iDto.startLocationName())
+                    .startLat(iDto.startLat())
+                    .startLng(iDto.startLng())
+                    .endDateTime(iDto.endDateTime())
+                    .build();
+
+            if (iDto.stops() != null) {
+                List<ItineraryStop> stops = iDto.stops().stream()
+                        .map(s -> ItineraryStop.builder()
+                                .id(UUID.randomUUID())
+                                .itinerary(itinerary)
+                                .name(s.name())
+                                .latitude(s.latitude())
+                                .longitude(s.longitude())
+                                .orderIndex(s.orderIndex())
+                                .arrivalDateTime(s.arrivalDateTime())
+                                .departureDateTime(s.departureDateTime())
+                                .build())
+                        .toList();
+                itinerary.setStops(stops);
             }
+
+            itineraryRepository.save(itinerary);
         }
-Trip trip = Trip.builder()
-        .id(UUID.randomUUID())
-        .title(dto.title())
-        .description(dto.description())
-        .creatorId(userUUID)
-        .type(dto.type())
-        .startDate(dto.startDate())
-        .itinerary(itinerary)
-        .maxCapacity(dto.maxCapacity())
-        .status(TripStatus.OPEN)
-        .build();
-
-        Trip savedTrip = tripRepository.save(trip);
-
-        Float budget = trip.getItinerary() != null
-                ? trip.getItinerary().getEstimatedBudget()
-                : null;
 
         tripProducer.sendTripCreatedEvent(new TripCreatedEvent(
                 trip.getId(),
                 trip.getCreatorId(),
-                trip.getType(),
-                budget
+                trip.getTripType()
         ));
 
-        return savedTrip;
+        return trip;
     }
 
     public void updateStatus(String userId, UUID tripId, UpdateTripStatusRequest dto) {

@@ -5,11 +5,12 @@ import com.travelbuddy.tripservice.enums.TripType;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 @Table(name = "trips")
@@ -32,32 +33,28 @@ public class Trip {
     @Column(name = "creator_id", nullable = false)
     private UUID creatorId;
 
+    @Column(nullable = false)
+    private String tripType;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private TripType type;
+    private TripStatus status;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "itinerary_id")
-    private Itinerary itinerary;
-
-    @Column(name = "start_date", nullable = false)
-    private LocalDate startDate;
+    @Column(name = "max_capacity", nullable = false)
+    private int maxCapacity;
 
     @ElementCollection
     @CollectionTable(
-        name = "trip_members",
-        joinColumns = @JoinColumn(name = "trip_id")
+            name = "trip_members",
+            joinColumns = @JoinColumn(name = "trip_id")
     )
     @Column(name = "profile_id")
     @Builder.Default
     private List<UUID> members = new ArrayList<>();
 
-    @Column(name = "max_capacity", nullable = false)
-    private int maxCapacity;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private TripStatus status;
+    @OneToOne(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private Itinerary itinerary;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

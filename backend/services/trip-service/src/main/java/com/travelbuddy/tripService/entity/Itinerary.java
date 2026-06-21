@@ -3,10 +3,12 @@ package com.travelbuddy.tripservice.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
-
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 @Entity
 @Table(name = "itineraries")
 @Getter
@@ -17,41 +19,37 @@ import java.util.UUID;
 public class Itinerary {
 
     @Id
-    @GeneratedValue
     private UUID id;
 
-    @Column(name = "creator_id", nullable = false)
-    private UUID creatorId;
+    @OneToOne
+    @JoinColumn(name = "trip_id", nullable = false)
+    @JsonBackReference
+    private Trip trip;
 
-    @Column(nullable = false)
-    private String destination;
+    // REQUIRED start of journey
+    @Column(name = "start_time", nullable = false)
+    private Instant startDateTime;
 
-    @Column(nullable = false)
-    private String country;
+    @Column(name = "start_name", nullable = false)
+    private String startLocationName;
 
-    // @Column(name = "start_date", nullable = false)
-    // private LocalDate startDate;
+    @Column(name = "start_lat", nullable = false)
+    private Double startLat;
 
-    @Column(nullable = false)
-    private int duration;
+    @Column(name = "start_lng", nullable = false)
+    private Double startLng;
 
-    @Column(name = "estimated_budget")
-    private Float estimatedBudget;
+    // Optional end of journey
+    @Column(name = "end_time")
+    private Instant endDateTime;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    @PrePersist
-    public void prePersist() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
+    @OneToMany(
+            mappedBy = "itinerary",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @OrderBy("orderIndex ASC")
+    @JsonManagedReference
+    @Builder.Default
+    private List<ItineraryStop> stops = new ArrayList<>();
 }

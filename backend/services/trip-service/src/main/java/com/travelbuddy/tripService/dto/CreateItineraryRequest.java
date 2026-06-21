@@ -1,21 +1,28 @@
 package com.travelbuddy.tripservice.dto;
 
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
-import java.time.LocalDate;
+import java.time.Instant;
+import java.util.List;
 
 public record CreateItineraryRequest(
 
-        @NotBlank(message = "Destination is required")
-        String destination,
+        @NotNull(message = "Start time is required")
+        Instant startDateTime,
 
-        @NotBlank(message = "Country is required")
-        String country,
+        @NotBlank(message = "Start location name is required")
+        String startLocationName,
 
-        @Min(value = 1, message = "Duration must be at least 1 day")
-        int duration,
+        @NotNull(message = "Start latitude is required")
+        Double startLat,
 
-        Float estimatedBudget
+        @NotNull(message = "Start longitude is required")
+        Double startLng,
+
+        Instant endDateTime,
+
+        @Size(max = 5, message = "Maximum 5 stops allowed")
+        List<CreateItineraryStopRequest> stops
 ) {}

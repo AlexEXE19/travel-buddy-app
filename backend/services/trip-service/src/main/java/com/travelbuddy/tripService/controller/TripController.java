@@ -24,12 +24,16 @@ public class TripController {
         this.tripService = tripService;
     }
 
-    @GetMapping
-    public ResponseEntity<List<Trip>> getTrips(
-            @RequestHeader("X-User-Id") String userId,
-            @RequestParam(required = false) TripStatus status,
-            @RequestParam(defaultValue = "ALL") TripFilter filter) {
-        return ResponseEntity.ok(tripService.getTrips(userId, status, filter));
+    @GetMapping("/me/created")
+    public ResponseEntity<List<Trip>> getUserTrips(
+            @RequestHeader("X-User-Id") String userId) {
+        return ResponseEntity.ok(tripService.getUserTrips(userId));
+    }
+
+    @GetMapping("/me/joined")
+    public ResponseEntity<List<Trip>> getUserJoinedTrips(
+            @RequestHeader("X-User-Id") String userId) {
+        return ResponseEntity.ok(tripService.getUserJoinedTrips(userId));
     }
 
     @GetMapping("/{tripId}")
@@ -38,7 +42,7 @@ public class TripController {
         return ResponseEntity.ok(tripService.getTripById(tripId));
     }
 
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<Trip> createTrip(
             @RequestHeader("X-User-Id") String userId,
             @Valid @RequestBody CreateTripRequest dto) {

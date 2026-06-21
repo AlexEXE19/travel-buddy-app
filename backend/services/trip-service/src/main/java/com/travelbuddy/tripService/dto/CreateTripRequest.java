@@ -1,12 +1,9 @@
 package com.travelbuddy.tripservice.dto;
 
-import com.travelbuddy.tripservice.enums.TripType;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import java.time.LocalDate;
-import java.util.UUID; 
+import jakarta.validation.constraints.*;
+
+import java.time.Instant;
+import java.util.List;
 
 public record CreateTripRequest(
 
@@ -18,14 +15,13 @@ public record CreateTripRequest(
         String description,
 
         @NotNull(message = "Trip type is required")
-        TripType type,
-
-        @NotNull(message = "Start date is required")
-        LocalDate startDate,
-
-        UUID itineraryId, // Now compiles perfectly
+        String tripType,
 
         @NotNull(message = "Max capacity is required")
-        @Min(value = 2, message = "Max capacity must be at least 2")
-        int maxCapacity
+        @Min(value = 2, message = "Must have at least 2 people")
+        @Max(value = 5, message = "Cannot exceed 5 people")
+        int maxCapacity,
+
+        @NotNull(message = "Itinerary is required")
+        CreateItineraryRequest itinerary
 ) {}

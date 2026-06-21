@@ -9,5 +9,5 @@ import java.util.UUID;
 
 @Repository
 public interface ItineraryRepository extends JpaRepository<Itinerary, UUID> {
-    List<Itinerary> findByCreatorId(UUID creatorId);
+    List<Itinerary> findByTripCreatorId(UUID creatorId);
 }
