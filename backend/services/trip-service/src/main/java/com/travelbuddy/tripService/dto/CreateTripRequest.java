@@ -1,5 +1,6 @@
 package com.travelbuddy.tripservice.dto;
 
+import com.travelbuddy.tripservice.enums.TripType;
 import jakarta.validation.constraints.*;
 
 import java.time.Instant;
@@ -15,12 +16,14 @@ public record CreateTripRequest(
         String description,
 
         @NotNull(message = "Trip type is required")
-        String tripType,
+        TripType tripType,
 
         @NotNull(message = "Max capacity is required")
         @Min(value = 2, message = "Must have at least 2 people")
         @Max(value = 5, message = "Cannot exceed 5 people")
         int maxCapacity,
+
+        boolean womenOnly,
 
         @NotNull(message = "Itinerary is required")
         CreateItineraryRequest itinerary

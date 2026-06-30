@@ -2,6 +2,7 @@ package com.travelbuddy.tripservice.service;
 
 import com.travelbuddy.tripservice.config.RabbitConfig;
 import com.travelbuddy.tripservice.events.TripCreatedEvent;
+import com.travelbuddy.tripservice.events.UserJoinedTripEvent;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,14 @@ public class TripProducer {
         rabbitTemplate.convertAndSend(
                 RabbitConfig.EXCHANGE,
                 RabbitConfig.ROUTING_KEY,
+                event
+        );
+    }
+
+    public void sendUserJoinedTripEvent(UserJoinedTripEvent event) {
+        rabbitTemplate.convertAndSend(
+                RabbitConfig.EXCHANGE,
+                RabbitConfig.USER_JOINED_ROUTING_KEY,
                 event
         );
     }

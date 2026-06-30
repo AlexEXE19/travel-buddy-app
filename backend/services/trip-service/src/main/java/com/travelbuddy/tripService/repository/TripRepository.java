@@ -26,4 +26,6 @@ public interface TripRepository extends JpaRepository<Trip, UUID> {
 
     List<Trip> findByStatus(TripStatus status);
     Optional<Trip> findByItineraryId(UUID itineraryId);
+
+    long countByCreatorIdAndCreatedAtAfter(UUID creatorId, java.time.LocalDateTime after);
 }

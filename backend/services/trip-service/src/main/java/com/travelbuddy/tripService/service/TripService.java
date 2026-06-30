@@ -9,7 +9,6 @@ import com.travelbuddy.tripservice.entity.Itinerary;
 import com.travelbuddy.tripservice.entity.Trip;
 import com.travelbuddy.tripservice.entity.ItineraryStop;
 
-import com.travelbuddy.tripservice.enums.TripFilter;
 import com.travelbuddy.tripservice.enums.TripStatus;
 import com.travelbuddy.tripservice.repository.ItineraryRepository;
 import com.travelbuddy.tripservice.repository.TripRepository;
@@ -17,23 +16,42 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import com.travelbuddy.tripservice.events.TripCreatedEvent;
+import com.travelbuddy.tripservice.events.UserJoinedTripEvent;
 import com.travelbuddy.tripservice.service.TripProducer;
+import com.travelbuddy.tripservice.client.ProfileClient;
+import com.travelbuddy.tripservice.client.ProfileSummary;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
 @Service
 public class TripService {
 
+    private static final int WEEKLY_TRIP_LIMIT = 2;
+
     private final TripRepository tripRepository;
     private final ItineraryRepository itineraryRepository;
     private final TripProducer tripProducer;
+    private final ProfileClient profileClient;
 
     public TripService(TripRepository tripRepository,
-                       ItineraryRepository itineraryRepository,TripProducer tripProducer) {
+                       ItineraryRepository itineraryRepository, TripProducer tripProducer,
+                       ProfileClient profileClient) {
         this.tripRepository = tripRepository;
         this.itineraryRepository = itineraryRepository;
-            this.tripProducer = tripProducer; 
+        this.tripProducer = tripProducer;
+        this.profileClient = profileClient;
+    }
+
+    /** Look up a single user's profile summary; null if unavailable. */
+    private ProfileSummary profileOf(UUID userId) {
+        try {
+            List<ProfileSummary> list = profileClient.getBatch(List.of(userId));
+            return list.isEmpty() ? null : list.get(0);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public List<Trip> getUserTrips(String userId) {
@@ -54,16 +72,35 @@ public List<Trip> getUserJoinedTrips(String userId) {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Trip not found"));
     }
 
+    public List<Trip> getBatchTrips(List<UUID> ids) {
+        return tripRepository.findAllById(ids);
+    }
+
     public Trip createTrip(String userId, CreateTripRequest dto) {
+        UUID creatorId = UUID.fromString(userId);
+
+        // Weekly trip-creation limit for non-premium users.
+        ProfileSummary creator = profileOf(creatorId);
+        boolean premium = creator != null && creator.isPremium();
+        if (!premium) {
+            long recent = tripRepository.countByCreatorIdAndCreatedAtAfter(creatorId, LocalDateTime.now().minusDays(7));
+            if (recent >= WEEKLY_TRIP_LIMIT) {
+                throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
+                        "Weekly trip limit reached (" + WEEKLY_TRIP_LIMIT
+                                + "/week). Upgrade to Premium for unlimited trips.");
+            }
+        }
+
         UUID tripId = UUID.randomUUID();
 
         Trip trip = Trip.builder()
                 .id(tripId)
                 .title(dto.title())
                 .description(dto.description())
-                .creatorId(UUID.fromString(userId))
+                .creatorId(creatorId)
                 .tripType(dto.tripType())
                 .maxCapacity(dto.maxCapacity())
+                .womenOnly(dto.womenOnly())
                 .status(TripStatus.OPEN)
                 .build();
 
@@ -104,7 +141,9 @@ public List<Trip> getUserJoinedTrips(String userId) {
         tripProducer.sendTripCreatedEvent(new TripCreatedEvent(
                 trip.getId(),
                 trip.getCreatorId(),
-                trip.getTripType()
+                trip.getTripType().name(),
+                trip.getDescription(),
+                trip.getTitle()
         ));
 
         return trip;
@@ -144,6 +183,15 @@ public List<Trip> getUserJoinedTrips(String userId) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Trip is at full capacity");
         }
 
+        // Women-only trips can only be joined by women travelers.
+        if (trip.isWomenOnly()) {
+            ProfileSummary joiner = profileOf(userUUID);
+            if (joiner == null || !joiner.isFemale()) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                        "This trip is open to women travelers only.");
+            }
+        }
+
         trip.getMembers().add(userUUID);
 
         if (trip.getMembers().size() == trip.getMaxCapacity()) {
@@ -151,6 +199,14 @@ public List<Trip> getUserJoinedTrips(String userId) {
         }
 
         tripRepository.save(trip);
+
+        tripProducer.sendUserJoinedTripEvent(new UserJoinedTripEvent(
+                tripId, UUID.fromString(userId), trip.getTitle()
+        ));
+    }
+
+    public List<Trip> getOpenTrips() {
+        return tripRepository.findByStatus(TripStatus.OPEN);
     }
 
     public void leaveTrip(String userId, UUID tripId) {

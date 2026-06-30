@@ -14,6 +14,7 @@ public class RabbitConfig {
     public static final String QUEUE = "trip.queue";
     public static final String EXCHANGE = "trip.exchange";
     public static final String ROUTING_KEY = "trip.created";
+    public static final String USER_JOINED_ROUTING_KEY = "trip.member.joined";
 
     @Bean
     public Queue queue() {

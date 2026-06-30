@@ -33,8 +33,9 @@ public class Trip {
     @Column(name = "creator_id", nullable = false)
     private UUID creatorId;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String tripType;
+    private TripType tripType;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -42,6 +43,10 @@ public class Trip {
 
     @Column(name = "max_capacity", nullable = false)
     private int maxCapacity;
+
+    @Column(name = "women_only", nullable = false, columnDefinition = "boolean not null default false")
+    @Builder.Default
+    private boolean womenOnly = false;
 
     @ElementCollection
     @CollectionTable(
