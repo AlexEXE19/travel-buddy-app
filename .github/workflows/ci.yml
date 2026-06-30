@@ -7,8 +7,18 @@ on:
     branches: ["master"]
 
 jobs:
-  build-backend:
+  test-backend:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - api-gateway
+          - auth-service
+          - profile-service
+          - trip-service
+          - matching-service
+          - chat-service
 
     steps:
       - name: Checkout repository
@@ -20,23 +30,19 @@ jobs:
           java-version: "17"
           distribution: "temurin"
 
-      - name: Build api-gateway
+      - name: Run ${{ matrix.service }} unit tests
+        working-directory: backend/services/${{ matrix.service }}
         run: |
-          cd backend/services/api-gateway
           chmod +x gradlew
-          ./gradlew build -x test
+          ./gradlew test --console=plain
 
-      - name: Build auth-service
-        run: |
-          cd backend/services/auth-service
-          chmod +x gradlew
-          ./gradlew build -x test
-
-      - name: Build profile-service
-        run: |
-          cd backend/services/profile-service
-          chmod +x gradlew
-          ./gradlew build -x test
+      - name: Upload ${{ matrix.service }} test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report-${{ matrix.service }}
+          path: backend/services/${{ matrix.service }}/build/reports/tests/test
+          if-no-files-found: ignore
 
   build-frontend:
     runs-on: ubuntu-latest
@@ -51,11 +57,9 @@ jobs:
           node-version: "20"
 
       - name: Install dependencies
-        run: |
-          cd frontend
-          npm ci
+        working-directory: frontend
+        run: npm ci
 
       - name: Build frontend
-        run: |
-          cd frontend
-          npm run build
+        working-directory: frontend
+        run: npm run build
