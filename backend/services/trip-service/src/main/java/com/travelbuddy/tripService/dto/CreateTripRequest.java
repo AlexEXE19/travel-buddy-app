@@ -3,8 +3,6 @@ package com.travelbuddy.tripservice.dto;
 import com.travelbuddy.tripservice.enums.TripType;
 import jakarta.validation.constraints.*;
 
-import java.time.Instant;
-import java.util.List;
 
 public record CreateTripRequest(
 

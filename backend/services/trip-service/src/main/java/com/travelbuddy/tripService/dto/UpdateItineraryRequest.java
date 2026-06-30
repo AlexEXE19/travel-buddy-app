@@ -3,7 +3,6 @@ package com.travelbuddy.tripservice.dto;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 
-import java.time.LocalDate;
 
 public record UpdateItineraryRequest(
 
