@@ -1,0 +1,2 @@
+-- No seed data needed for matching-service.
+-- Embeddings are generated automatically when profiles are updated via RabbitMQ.
