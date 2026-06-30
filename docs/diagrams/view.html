@@ -1,0 +1,538 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TravelBuddy — Diagrams</title>
+<style>
+ :root{color-scheme:light}
+ body{font-family:system-ui,Segoe UI,Roboto,sans-serif;margin:0;background:#f6f7f9;color:#1f2937}
+ header{position:sticky;top:0;background:#0891b2;color:#fff;padding:14px 20px;box-shadow:0 2px 8px rgba(0,0,0,.15);z-index:10}
+ header h1{margin:0;font-size:18px}
+ nav{padding:8px 20px;background:#fff;border-bottom:1px solid #e5e7eb;position:sticky;top:50px;z-index:9}
+ nav a{margin-right:14px;font-size:13px;color:#0891b2;text-decoration:none}
+ nav a:hover{text-decoration:underline}
+ main{max-width:1100px;margin:0 auto;padding:24px 20px 80px}
+ h2.part{margin:40px 0 4px;font-size:22px;border-bottom:3px solid #7c3aed;padding-bottom:6px}
+ h3.cap{margin:26px 0 8px;font-size:15px;color:#374151}
+ .card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;margin:10px 0;overflow:auto;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+ .pre-src{display:none}
+</style></head><body>
+<header><h1>TravelBuddy — Architecture &amp; Design Diagrams</h1></header>
+<nav>
+<a href="#system-architecture">System Architecture</a>
+<a href="#entity-relationship-diagrams">Entity–Relationship Diagrams</a>
+<a href="#sequence-diagrams-core-functions">Sequence Diagrams — Core Functions</a>
+<a href="#observability-architecture">Observability Architecture</a>
+<a href="#deployment-container-topology">Deployment / Container Topology</a>
+<a href="#state-diagrams">State Diagrams</a>
+</nav><main>
+<h2 class="part" id="system-architecture">System Architecture <small style="font-weight:400;color:#9ca3af;font-size:13px">(01-system-architecture.md)</small></h2>
+<h3 class="cap">System Architecture</h3>
+<div class="card"><pre class="mermaid">flowchart TB
+    subgraph client[&quot;Client&quot;]
+        FE[&quot;Next.js Frontend&lt;br/&gt;(browser · :3000)&quot;]
+    end
+
+    subgraph edge[&quot;Edge&quot;]
+        GW[&quot;API Gateway&lt;br/&gt;Spring Cloud Gateway · :8080&lt;br/&gt;JWT validation → X-User-Id&quot;]
+    end
+
+    FE --&gt;|&quot;REST (cookie JWT)&quot;| GW
+    FE -.-&gt;|&quot;STOMP / WebSocket (JWT)&quot;| CHAT
+
+    subgraph svc[&quot;Application services&quot;]
+        AUTH[&quot;auth-service&lt;br/&gt;:8081&quot;]
+        PROF[&quot;profile-service&lt;br/&gt;:8082&quot;]
+        TRIP[&quot;trip-service&lt;br/&gt;:8083&quot;]
+        MATCH[&quot;matching-service&lt;br/&gt;:8084&quot;]
+        EMB[&quot;embedding-service&lt;br/&gt;FastAPI · :8085&quot;]
+        CHAT[&quot;chat-service&lt;br/&gt;:8086&quot;]
+    end
+
+    GW --&gt; AUTH
+    GW --&gt; PROF
+    GW --&gt; TRIP
+    GW --&gt; MATCH
+    GW --&gt; CHAT
+
+    %% Synchronous inter-service calls (OpenFeign)
+    MATCH --&gt;|&quot;Feign: batch profiles&quot;| PROF
+    MATCH --&gt;|&quot;Feign: open trips&quot;| TRIP
+    MATCH --&gt;|&quot;Feign: embed text&quot;| EMB
+    CHAT  --&gt;|&quot;Feign: my trips (room backfill)&quot;| TRIP
+
+    subgraph data[&quot;Datastores (one per service)&quot;]
+        DBA[(&quot;auth_db&lt;br/&gt;PostgreSQL&quot;)]
+        DBP[(&quot;profile_db&lt;br/&gt;PostgreSQL&quot;)]
+        DBT[(&quot;trip_db&lt;br/&gt;PostgreSQL&quot;)]
+        DBM[(&quot;matching_db&lt;br/&gt;PostgreSQL + pgvector&quot;)]
+        DBC[(&quot;chat_db&lt;br/&gt;PostgreSQL&quot;)]
+    end
+
+    AUTH --&gt; DBA
+    PROF --&gt; DBP
+    TRIP --&gt; DBT
+    MATCH --&gt; DBM
+    CHAT --&gt; DBC
+
+    subgraph bus[&quot;Event bus&quot;]
+        MQ{{&quot;RabbitMQ&lt;br/&gt;(topic exchanges)&quot;}}
+    end
+
+    AUTH  -.-&gt;|&quot;UserRegisteredEvent&quot;| MQ
+    PROF  -.-&gt;|&quot;UserProfileUpdatedEvent&quot;| MQ
+    TRIP  -.-&gt;|&quot;TripCreatedEvent / UserJoinedTripEvent&quot;| MQ
+    MATCH -.-&gt;|&quot;UserMatchedEvent&quot;| MQ
+
+    MQ -.-&gt;|&quot;UserRegisteredEvent&quot;| PROF
+    MQ -.-&gt;|&quot;profile / trip events&quot;| MATCH
+    MQ -.-&gt;|&quot;matched / trip events&quot;| CHAT</pre></div>
+<h2 class="part" id="entity-relationship-diagrams">Entity–Relationship Diagrams <small style="font-weight:400;color:#9ca3af;font-size:13px">(02-er-diagrams.md)</small></h2>
+<h3 class="cap">auth_db — auth-service</h3>
+<div class="card"><pre class="mermaid">erDiagram
+    USERS_CREDENTIALS {
+        uuid id PK
+        string email UK
+        string password_hash
+        string account_status
+        datetime created_at
+    }</pre></div>
+<h3 class="cap">profile_db — profile-service</h3>
+<div class="card"><pre class="mermaid">erDiagram
+    USER_PROFILES {
+        uuid id PK &quot;= users_credentials.id&quot;
+        string first_name
+        string last_name
+        string phone
+        enum gender
+        string nationality
+        string country_of_residence
+        string city_of_residence
+        string preferred_language
+        date date_of_birth
+        text bio
+        string profile_picture_url
+        enum budget_range
+        enum preferred_travel_type
+        enum preferred_climate
+        enum preferred_transport
+        enum preferred_accommodation
+        string subscription_status
+        datetime created_at
+        datetime updated_at
+    }
+    USER_INTERESTS {
+        uuid profile_id FK
+        string interest
+    }
+    USER_VISITED_PLACES {
+        uuid profile_id FK
+        string place
+    }
+    USER_BUCKET_LIST {
+        uuid profile_id FK
+        string place
+    }
+    USER_PROFILES ||--o{ USER_INTERESTS : &quot;has&quot;
+    USER_PROFILES ||--o{ USER_VISITED_PLACES : &quot;has&quot;
+    USER_PROFILES ||--o{ USER_BUCKET_LIST : &quot;has&quot;</pre></div>
+<h3 class="cap">trip_db — trip-service</h3>
+<div class="card"><pre class="mermaid">erDiagram
+    TRIPS {
+        uuid id PK
+        string title
+        text description
+        uuid creator_id &quot;= a user id&quot;
+        enum trip_type
+        enum status
+        int max_capacity
+        datetime created_at
+        datetime updated_at
+    }
+    TRIP_MEMBERS {
+        uuid trip_id FK
+        uuid profile_id &quot;= a user id&quot;
+    }
+    ITINERARIES {
+        uuid id PK
+        uuid trip_id FK UK
+        timestamp start_time
+        string start_name
+        double start_lat
+        double start_lng
+        timestamp end_time
+    }
+    ITINERARY_STOPS {
+        uuid id PK
+        uuid itinerary_id FK
+        int order_index
+        string name
+        double latitude
+        double longitude
+        timestamp arrival_time
+        timestamp departure_time
+    }
+    TRIPS ||--o| ITINERARIES : &quot;has one&quot;
+    TRIPS ||--o{ TRIP_MEMBERS : &quot;joined by&quot;
+    ITINERARIES ||--o{ ITINERARY_STOPS : &quot;contains&quot;</pre></div>
+<h3 class="cap">matching_db — matching-service (PostgreSQL + pgvector)</h3>
+<div class="card"><pre class="mermaid">erDiagram
+    USER_EMBEDDINGS {
+        uuid user_id PK &quot;= a user id&quot;
+        float_array embedding &quot;pgvector vector(384)&quot;
+    }
+    TRIP_EMBEDDINGS {
+        uuid trip_id PK &quot;= trips.id&quot;
+        uuid creator_id
+        float_array embedding &quot;pgvector vector(384)&quot;
+    }
+    CONNECTIONS {
+        uuid id PK
+        uuid user_a_id &quot;initiator user id&quot;
+        uuid user_b_id &quot;target user id&quot;
+        enum status &quot;PENDING | MATCHED | REJECTED&quot;
+        datetime created_at
+        datetime updated_at
+    }</pre></div>
+<h3 class="cap">chat_db — chat-service</h3>
+<div class="card"><pre class="mermaid">erDiagram
+    CHAT_ROOMS {
+        uuid id PK
+        enum type &quot;DM | TRIP&quot;
+        uuid reference_id &quot;trips.id for TRIP rooms, null for DM&quot;
+        string name &quot;trip title for TRIP rooms&quot;
+        datetime created_at
+    }
+    ROOM_PARTICIPANTS {
+        uuid id PK
+        uuid room_id FK
+        uuid user_id &quot;= a user id&quot;
+        datetime joined_at
+        datetime last_read_at
+    }
+    CHAT_MESSAGES {
+        uuid id PK
+        uuid room_id FK
+        uuid sender_id &quot;= a user id&quot;
+        text content
+        enum type &quot;TEXT | TRIP_SHARE&quot;
+        uuid trip_id &quot;set for TRIP_SHARE&quot;
+        datetime sent_at
+        datetime edited_at
+        datetime deleted_at &quot;soft delete&quot;
+    }
+    CHAT_ROOMS ||--o{ ROOM_PARTICIPANTS : &quot;has&quot;
+    CHAT_ROOMS ||--o{ CHAT_MESSAGES : &quot;contains&quot;</pre></div>
+<h3 class="cap">Logical links across services (NOT database foreign keys)</h3>
+<div class="card"><pre class="mermaid">flowchart LR
+    subgraph auth[&quot;auth_db&quot;]
+        UC[&quot;users_credentials.id&quot;]
+    end
+    subgraph profile[&quot;profile_db&quot;]
+        UP[&quot;user_profiles.id&quot;]
+    end
+    subgraph trip[&quot;trip_db&quot;]
+        T[&quot;trips.id&quot;]
+        TC[&quot;trips.creator_id&quot;]
+        TM[&quot;trip_members.profile_id&quot;]
+    end
+    subgraph matching[&quot;matching_db&quot;]
+        UE[&quot;user_embeddings.user_id&quot;]
+        TE[&quot;trip_embeddings.trip_id&quot;]
+        CN[&quot;connections.user_a_id / user_b_id&quot;]
+    end
+    subgraph chat[&quot;chat_db&quot;]
+        RP[&quot;room_participants.user_id&quot;]
+        CM[&quot;chat_messages.sender_id&quot;]
+        CR[&quot;chat_rooms.reference_id&quot;]
+    end
+
+    UC ==&gt;|&quot;same user id&quot;| UP
+    UC -.-&gt; TC
+    UC -.-&gt; TM
+    UC -.-&gt; UE
+    UC -.-&gt; CN
+    UC -.-&gt; RP
+    UC -.-&gt; CM
+
+    T ==&gt;|&quot;same trip id&quot;| TE
+    T -.-&gt; CR</pre></div>
+<h2 class="part" id="sequence-diagrams-core-functions">Sequence Diagrams — Core Functions <small style="font-weight:400;color:#9ca3af;font-size:13px">(03-sequence-diagrams.md)</small></h2>
+<h3 class="cap">1. Registration → profile bootstrap → onboarding</h3>
+<div class="card"><pre class="mermaid">sequenceDiagram
+    autonumber
+    actor U as User (browser)
+    participant GW as API Gateway
+    participant AUTH as auth-service
+    participant MQ as RabbitMQ
+    participant PROF as profile-service
+    participant MATCH as matching-service
+    participant EMB as embedding-service
+
+    U-&gt;&gt;GW: POST /api/v1/auth/register {email, password}
+    GW-&gt;&gt;AUTH: register
+    AUTH-&gt;&gt;AUTH: hash password, persist users_credentials
+    AUTH--&gt;&gt;U: 200 + Set-Cookie AUTH_TOKEN (JWT)
+    AUTH-)MQ: UserRegisteredEvent(userId, email)
+    MQ-)PROF: UserRegisteredEvent
+    PROF-&gt;&gt;PROF: create empty user_profiles row (id = userId)
+
+    Note over U: Onboarding multi-step form (aggregated)
+    U-&gt;&gt;GW: PUT /api/v1/profile/me {bio, interests, ...}
+    GW-&gt;&gt;PROF: update profile (X-User-Id)
+    PROF-&gt;&gt;PROF: save profile fields + collections
+    PROF-)MQ: UserProfileUpdatedEvent(userId)
+    MQ-)MATCH: UserProfileUpdatedEvent
+    MATCH-&gt;&gt;EMB: POST /embed { profile text }
+    EMB--&gt;&gt;MATCH: 384-d vector
+    MATCH-&gt;&gt;MATCH: upsert user_embeddings (pgvector)</pre></div>
+<h3 class="cap">2. Discover feed (AI recommendation)</h3>
+<div class="card"><pre class="mermaid">sequenceDiagram
+    autonumber
+    actor U as User
+    participant GW as API Gateway
+    participant MATCH as matching-service
+    participant EMB as embedding-service
+    participant PROF as profile-service
+    participant TRIP as trip-service
+
+    U-&gt;&gt;GW: GET /api/v1/matching/discover/users
+    GW-&gt;&gt;MATCH: discover (X-User-Id)
+    MATCH-&gt;&gt;PROF: Feign: getProfileForMatching(userId)
+    PROF--&gt;&gt;MATCH: profile text
+    MATCH-&gt;&gt;EMB: POST /embed
+    EMB--&gt;&gt;MATCH: query vector
+    MATCH-&gt;&gt;MATCH: pgvector nearest neighbours by cosine distance (LIMIT n)
+    MATCH-&gt;&gt;PROF: Feign: getBatchProfiles(ids)
+    PROF--&gt;&gt;MATCH: profile cards
+    MATCH-&gt;&gt;TRIP: Feign: getOpenTrips()
+    TRIP--&gt;&gt;MATCH: open trips (grouped by creator)
+    MATCH--&gt;&gt;U: discover cards (+ each user&#x27;s open trips)</pre></div>
+<h3 class="cap">3. Swipe → mutual match → DM room</h3>
+<div class="card"><pre class="mermaid">sequenceDiagram
+    autonumber
+    actor A as User A
+    actor B as User B
+    participant GW as API Gateway
+    participant MATCH as matching-service
+    participant MQ as RabbitMQ
+    participant CHAT as chat-service
+
+    A-&gt;&gt;GW: POST /api/v1/matching/swipe {target: B, LIKE}
+    GW-&gt;&gt;MATCH: swipe (X-User-Id = A)
+    MATCH-&gt;&gt;MATCH: no reverse like → save connection(A,B, PENDING)
+    MATCH--&gt;&gt;A: 200
+
+    B-&gt;&gt;GW: POST /api/v1/matching/swipe {target: A, LIKE}
+    GW-&gt;&gt;MATCH: swipe (X-User-Id = B)
+    MATCH-&gt;&gt;MATCH: reverse PENDING(A,B) found → set MATCHED
+    MATCH-)MQ: UserMatchedEvent(A, B)
+    MQ-)CHAT: UserMatchedEvent
+    CHAT-&gt;&gt;CHAT: create DM chat_room + room_participants(A,B)
+    Note over A,B: &quot;It&#x27;s a match&quot; → DM room now visible to both</pre></div>
+<h3 class="cap">4. Trip creation → trip room + auto-shared invite</h3>
+<div class="card"><pre class="mermaid">sequenceDiagram
+    autonumber
+    actor U as Creator
+    participant GW as API Gateway
+    participant TRIP as trip-service
+    participant MQ as RabbitMQ
+    participant MATCH as matching-service
+    participant EMB as embedding-service
+    participant CHAT as chat-service
+
+    U-&gt;&gt;GW: POST /api/v1/trips/create {trip + itinerary}
+    GW-&gt;&gt;TRIP: create (X-User-Id)
+    TRIP-&gt;&gt;TRIP: persist trips + itineraries + stops
+    TRIP-)MQ: TripCreatedEvent(tripId, creatorId, title)
+    TRIP--&gt;&gt;U: 201 Created
+
+    MQ-)MATCH: TripCreatedEvent
+    MATCH-&gt;&gt;EMB: POST /embed (trip text)
+    EMB--&gt;&gt;MATCH: trip vector
+    MATCH-&gt;&gt;MATCH: upsert trip_embeddings
+
+    MQ-)CHAT: TripCreatedEvent
+    CHAT-&gt;&gt;CHAT: create TRIP chat_room (name = title)
+    CHAT-&gt;&gt;CHAT: insert TRIP_SHARE message into creator&#x27;s DM rooms</pre></div>
+<h3 class="cap">5. Real-time chat (WebSocket / STOMP) with edit &amp; soft-delete</h3>
+<div class="card"><pre class="mermaid">sequenceDiagram
+    autonumber
+    actor A as User A
+    actor B as User B
+    participant CHAT as chat-service
+    participant DB as chat_db
+
+    A-&gt;&gt;CHAT: WS CONNECT /ws (Authorization: Bearer JWT)
+    CHAT-&gt;&gt;CHAT: validate JWT → bind Principal(userId)
+    A-&gt;&gt;CHAT: SUBSCRIBE /topic/room/{roomId}
+    B-&gt;&gt;CHAT: SUBSCRIBE /topic/room/{roomId}
+
+    A-&gt;&gt;CHAT: SEND /app/room/{roomId}/message {content}
+    CHAT-&gt;&gt;DB: insert chat_messages (TEXT)
+    CHAT--&gt;&gt;A: /topic/room/{roomId} NEW_MESSAGE
+    CHAT--&gt;&gt;B: /topic/room/{roomId} NEW_MESSAGE
+
+    A-&gt;&gt;CHAT: SEND /app/room/{roomId}/message/{id}/edit {content}
+    CHAT-&gt;&gt;DB: update content + edited_at
+    CHAT--&gt;&gt;B: EDIT_MESSAGE (shows &quot;edited&quot;)
+
+    A-&gt;&gt;CHAT: SEND /app/room/{roomId}/message/{id}/delete
+    CHAT-&gt;&gt;DB: set deleted_at (soft delete)
+    CHAT--&gt;&gt;B: DELETE_MESSAGE (shows &quot;message deleted&quot;)</pre></div>
+<h2 class="part" id="observability-architecture">Observability Architecture <small style="font-weight:400;color:#9ca3af;font-size:13px">(04-observability.md)</small></h2>
+<h3 class="cap">Observability Architecture</h3>
+<div class="card"><pre class="mermaid">flowchart LR
+    subgraph services[&quot;Application services (×7)&quot;]
+        S[&quot;auth · profile · trip · matching · chat · gateway&lt;br/&gt;(+ embedding, FastAPI)&quot;]
+    end
+
+    subgraph collect[&quot;Collection&quot;]
+        PT[&quot;Promtail&lt;br/&gt;(reads container stdout)&quot;]
+        PR[&quot;Prometheus&lt;br/&gt;(scrapes /actuator/prometheus, /metrics)&quot;]
+    end
+
+    subgraph store[&quot;Stores&quot;]
+        LK[(&quot;Loki&lt;br/&gt;logs&quot;)]
+        TM[(&quot;Tempo&lt;br/&gt;traces&quot;)]
+        PM[(&quot;Prometheus TSDB&lt;br/&gt;metrics&quot;)]
+    end
+
+    GRAF[&quot;Grafana :3001&lt;br/&gt;dashboards · Explore · drilldowns&quot;]
+
+    %% logs
+    S -.-&gt;|&quot;stdout (JSON-ish lines)&quot;| PT --&gt; LK
+    %% metrics
+    PR --&gt;|&quot;scrape every 15s&quot;| S
+    PR --&gt; PM
+    %% traces
+    S ==&gt;|&quot;spans (Zipkin format, W3C traceparent)&quot;| TM
+
+    LK --&gt; GRAF
+    TM --&gt; GRAF
+    PM --&gt; GRAF
+
+    LK -.-&gt;|&quot;trace id → open trace&quot;| TM
+    TM -.-&gt;|&quot;span → open logs&quot;| LK</pre></div>
+<h3 class="cap">End-to-end trace example</h3>
+<div class="card"><pre class="mermaid">flowchart TB
+    G[&quot;api-gateway&lt;br/&gt;http get /discover&lt;br/&gt;SERVER + CLIENT spans&quot;]
+    M[&quot;matching-service&lt;br/&gt;SERVER span + Feign CLIENT spans&quot;]
+    P[&quot;profile-service&lt;br/&gt;SERVER span (getBatchProfiles)&quot;]
+    T[&quot;trip-service&lt;br/&gt;SERVER span (getOpenTrips)&quot;]
+    E[&quot;embedding-service&lt;br/&gt;(client span only — no Python tracing)&quot;]
+
+    G --&gt; M
+    M --&gt; P
+    M --&gt; T
+    M -.-&gt; E</pre></div>
+<h2 class="part" id="deployment-container-topology">Deployment / Container Topology <small style="font-weight:400;color:#9ca3af;font-size:13px">(05-deployment.md)</small></h2>
+<h3 class="cap">Deployment / Container Topology</h3>
+<div class="card"><pre class="mermaid">flowchart TB
+    Browser([&quot;User&#x27;s browser&quot;])
+
+    subgraph compose[&quot;Docker Compose project: travel-buddy-app&quot;]
+        subgraph fnet[&quot;network: frontend-net&quot;]
+            FE[&quot;frontend&lt;br/&gt;Next.js · :3000&quot;]
+            GW[&quot;api-gateway&lt;br/&gt;Spring Cloud Gateway · :8080&lt;br/&gt;(also on backend-net)&quot;]
+        end
+
+        subgraph bnet[&quot;network: backend-net&quot;]
+            AUTH[&quot;auth-service · :8081&quot;]
+            PROF[&quot;profile-service · :8082&quot;]
+            TRIP[&quot;trip-service · :8083&quot;]
+            MATCH[&quot;matching-service · :8084&quot;]
+            EMB[&quot;embedding-service&lt;br/&gt;FastAPI · :8085&quot;]
+            CHAT[&quot;chat-service · :8086&quot;]
+            MQ{{&quot;rabbitmq&lt;br/&gt;:5672 · UI :15672&quot;}}
+
+            subgraph dbs[&quot;PostgreSQL — one per service&quot;]
+                DBA[(&quot;postgres-auth&quot;)]
+                DBP[(&quot;postgres-profile&quot;)]
+                DBT[(&quot;postgres-trip&quot;)]
+                DBM[(&quot;postgres-matching&lt;br/&gt;pgvector&quot;)]
+                DBC[(&quot;postgres-chat&quot;)]
+            end
+
+            subgraph obs[&quot;Observability stack&quot;]
+                PROM[&quot;prometheus · :9090&quot;]
+                LOKI[&quot;loki&quot;]
+                TEMPO[&quot;tempo&quot;]
+                PTAIL[&quot;promtail&quot;]
+                GRAF[&quot;grafana · :3001&quot;]
+            end
+        end
+    end
+
+    %% What the browser reaches directly (published ports)
+    Browser --&gt;|&quot;:3000&quot;| FE
+    Browser --&gt;|&quot;:8086 WebSocket&quot;| CHAT
+    Browser --&gt;|&quot;:3001&quot;| GRAF
+
+    %% Server-side / internal
+    FE --&gt;|&quot;SSR REST :8080&quot;| GW
+    GW --&gt; AUTH
+    GW --&gt; PROF
+    GW --&gt; TRIP
+    GW --&gt; MATCH
+    GW --&gt; CHAT
+
+    MATCH --&gt; EMB
+    AUTH --&gt; DBA
+    PROF --&gt; DBP
+    TRIP --&gt; DBT
+    MATCH --&gt; DBM
+    CHAT --&gt; DBC
+
+    AUTH --- MQ
+    PROF --- MQ
+    TRIP --- MQ
+    MATCH --- MQ
+    CHAT --- MQ
+
+    GRAF --&gt; PROM
+    GRAF --&gt; LOKI
+    GRAF --&gt; TEMPO</pre></div>
+<h2 class="part" id="state-diagrams">State Diagrams <small style="font-weight:400;color:#9ca3af;font-size:13px">(06-state-diagrams.md)</small></h2>
+<h3 class="cap">Connection lifecycle (matching-service)</h3>
+<div class="card"><pre class="mermaid">stateDiagram-v2
+    [*] --&gt; PENDING: A swipes LIKE on B, no reverse like yet
+    PENDING --&gt; MATCHED: B swipes LIKE on A
+    MATCHED --&gt; [*]: DM room created (UserMatchedEvent)
+
+    PENDING --&gt; REJECTED: reserved, not implemented
+
+    note right of REJECTED
+        REJECTED is defined in ConnectionStatus
+        but nothing sets it. A PASS simply
+        creates no connection row.
+    end note
+
+    note left of PENDING
+        Stored as connection(user_a_id = liker,
+        user_b_id = target, status).
+    end note</pre></div>
+<h3 class="cap">Trip lifecycle (trip-service)</h3>
+<div class="card"><pre class="mermaid">stateDiagram-v2
+    [*] --&gt; OPEN: trip created
+
+    OPEN --&gt; FILLED: a join takes the last spot (reaches capacity)
+    FILLED --&gt; OPEN: a member leaves
+
+    OPEN --&gt; CANCELLED: creator cancels
+    CANCELLED --&gt; OPEN: creator reopens
+
+    OPEN --&gt; COMPLETED: reserved, after end date
+    FILLED --&gt; COMPLETED: reserved, after end date
+
+    CANCELLED --&gt; [*]
+    COMPLETED --&gt; [*]
+
+    note right of COMPLETED
+        COMPLETED is defined in TripStatus.
+        No automatic transition yet (intended
+        once the itinerary end date passes).
+    end note</pre></div>
+</main>
+<script type="module">
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+mermaid.initialize({ startOnLoad: true, theme: 'default', securityLevel: 'loose' });
+</script></body></html>
