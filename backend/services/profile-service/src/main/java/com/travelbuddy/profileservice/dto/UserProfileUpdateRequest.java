@@ -1,8 +1,10 @@
 package com.travelbuddy.profileservice.dto;
 
-import jakarta.validation.constraints.PositiveOrZero;
+import com.travelbuddy.profileservice.enums.*;
 import jakarta.validation.constraints.Size;
+
 import java.time.LocalDate;
+import java.util.List;
 
 public record UserProfileUpdateRequest(
 
@@ -15,8 +17,7 @@ public record UserProfileUpdateRequest(
         @Size(max = 20, message = "Phone number must not exceed 20 characters")
         String phone,
 
-        @Size(max = 20, message = "Gender must not exceed 20 characters")
-        String gender,
+        Gender gender,
 
         @Size(max = 50, message = "Nationality must not exceed 50 characters")
         String nationality,
@@ -35,24 +36,21 @@ public record UserProfileUpdateRequest(
         @Size(max = 1000, message = "Bio must not exceed 1000 characters")
         String bio,
 
-        @Size(max = 500, message = "URL must not exceed 500 characters")
+        @Size(max = 500, message = "Profile picture URL must not exceed 500 characters")
         String profilePictureUrl,
 
-        @Size(max = 1000, message = "Interests should not exceed 1000 characters")
-        String interests,
+        List<String> interests,
 
-        @Size(max = 50, message = "Preferred travel type should not exceed 50 characters")
-        String preferredTravelType,
+        PreferredTravelType preferredTravelType,
 
-        @Size(max = 50, message = "Preferred climate should not exceed 50 characters")
-        String preferredClimate,
+        PreferredClimate preferredClimate,
 
-        @Size(max = 50, message = "Preferred transport should not exceed 50 characters")
-        String preferredTransport,
+        PreferredTransport preferredTransport,
 
-        @Size(max = 50, message = "Preferred accommodation should not exceed 50 characters")
-        String preferredAccommodation,
+        PreferredAccommodation preferredAccommodation,
 
-        @PositiveOrZero(message = "Budget must be a positive number or zero")
-        Float budget
+        BudgetRange budgetRange,
+
+        List<String> visitedPlaces,
+        List<String> bucketListPlaces
 ) {}

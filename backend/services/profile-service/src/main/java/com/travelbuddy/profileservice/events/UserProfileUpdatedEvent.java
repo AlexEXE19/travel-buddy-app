@@ -2,4 +2,4 @@ package com.travelbuddy.profileservice.events;
 
 import java.util.UUID;
 
-public record UserRegisteredEvent(UUID userId) {}
+public record UserProfileUpdatedEvent(UUID userId) {}
