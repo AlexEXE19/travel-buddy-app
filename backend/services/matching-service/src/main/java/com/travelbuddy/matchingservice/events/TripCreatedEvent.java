@@ -5,6 +5,6 @@ import java.util.UUID;
 public record TripCreatedEvent(
         UUID tripId,
         UUID creatorId,
-        String type,
-        Float estimatedBudget
+        String tripType,
+        String description
 ) {}

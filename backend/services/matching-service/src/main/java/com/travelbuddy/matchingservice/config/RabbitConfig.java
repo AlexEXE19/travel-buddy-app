@@ -15,6 +15,14 @@ public class RabbitConfig {
     public static final String EXCHANGE = "trip.exchange";
     public static final String ROUTING_KEY = "trip.created";
 
+    // Profile update events (from profile service)
+    public static final String PROFILE_UPDATED_QUEUE = "profile.updated.matching.queue";
+    public static final String USER_EXCHANGE = "user.exchange";
+    public static final String PROFILE_UPDATED_ROUTING_KEY = "profile.updated";
+
+    // User matched events (published by matching service)
+    public static final String USER_MATCHED_ROUTING_KEY = "user.matched";
+
     @Bean
     public Queue queue() {
         return new Queue(QUEUE, true);
@@ -31,6 +39,24 @@ public class RabbitConfig {
                 .bind(queue())
                 .to(exchange())
                 .with(ROUTING_KEY);
+    }
+
+    @Bean
+    public Queue profileUpdatedQueue() {
+        return new Queue(PROFILE_UPDATED_QUEUE, true);
+    }
+
+    @Bean
+    public TopicExchange userExchange() {
+        return new TopicExchange(USER_EXCHANGE);
+    }
+
+    @Bean
+    public Binding profileUpdatedBinding() {
+        return BindingBuilder
+                .bind(profileUpdatedQueue())
+                .to(userExchange())
+                .with(PROFILE_UPDATED_ROUTING_KEY);
     }
 
 

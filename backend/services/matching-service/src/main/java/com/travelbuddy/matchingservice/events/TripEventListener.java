@@ -4,13 +4,14 @@ import com.travelbuddy.matchingservice.client.EmbeddingClient;
 import com.travelbuddy.matchingservice.client.ProfileClient;
 import com.travelbuddy.matchingservice.config.RabbitConfig;
 import com.travelbuddy.matchingservice.dto.EmbeddingRequest;
-import com.travelbuddy.matchingservice.dto.ProfileResponse;
+import com.travelbuddy.matchingservice.dto.ProfileMatchingData;
 import com.travelbuddy.matchingservice.entity.TripEmbedding;
 import com.travelbuddy.matchingservice.repository.TripEmbeddingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Slf4j
@@ -25,11 +26,11 @@ public class TripEventListener {
     @RabbitListener(queues = RabbitConfig.QUEUE)
     public void handleTripCreated(TripCreatedEvent event) {
         try {
-            ProfileResponse profile = profileClient.getProfile(
+            ProfileMatchingData profile = profileClient.getProfileForMatching(
                     event.creatorId().toString()
             );
 
-            String text = buildTripText(event, profile);
+            String text = buildEmbeddingText(event, profile);
 
             List<Float> vectorList = embeddingClient.embed(
                     new EmbeddingRequest(text)
@@ -58,28 +59,15 @@ public class TripEventListener {
         }
     }
 
-    private String buildTripText(TripCreatedEvent event, ProfileResponse profile) {
+    private String buildEmbeddingText(TripCreatedEvent event, ProfileMatchingData profile) {
         StringBuilder sb = new StringBuilder();
 
-        if (event.type() != null)
-            sb.append("Trip type: ").append(event.type()).append(". ");
+        if (event.tripType() != null)
+            sb.append("Trip type: ").append(event.tripType().replace("_", " ").toLowerCase()).append(". ");
+        if (event.description() != null && !event.description().isBlank())
+            sb.append("Description: ").append(event.description()).append(". ");
 
-        if (event.estimatedBudget() != null)
-            sb.append("Estimated budget: ").append(event.estimatedBudget()).append(". ");
-
-        if (profile.travelStyle() != null)
-            sb.append("Travel style: ").append(profile.travelStyle()).append(". ");
-
-        if (profile.budget() != null)
-            sb.append("Budget: ").append(profile.budget()).append(". ");
-
-        if (profile.preferredClimate() != null)
-            sb.append("Preferred climate: ").append(profile.preferredClimate()).append(". ");
-
-        if (profile.interests() != null && !profile.interests().isEmpty())
-            sb.append("Interests: ")
-                    .append(String.join(", ", profile.interests()))
-                    .append(". ");
+        sb.append(profile.toEmbeddingText());
 
         return sb.toString().trim();
     }
