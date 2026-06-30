@@ -19,9 +19,10 @@ public class JwtUtil {
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    public String generateToken(String userId) {
+    public String generateToken(String userId, String role) {
         return Jwts.builder()
                 .subject(userId)
+                .claim("role", role == null ? "USER" : role)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + 15*60*1000))
                 .signWith(key)

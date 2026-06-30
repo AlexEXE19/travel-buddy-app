@@ -29,6 +29,16 @@ public class JwtUtil {
                 .getSubject();
     }
 
+    public String extractRole(String token) {
+        Object role = Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("role");
+        return role == null ? "USER" : role.toString();
+    }
+
     public boolean isTokenExpired(String token) {
         Date expiration = Jwts.parser()
                 .verifyWith(key)

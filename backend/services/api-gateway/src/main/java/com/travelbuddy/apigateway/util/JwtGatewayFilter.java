@@ -54,12 +54,21 @@ public class JwtGatewayFilter implements GlobalFilter {
                 return exchange.getResponse().setComplete();
             }
 
-            log.info("Gateway mutating request for path [{}]. Injecting headers: X-User-Id={}, X-User-Role=ROLE_USER",
-                    path, extractedUserId);
+            String role = jwtUtil.extractRole(token);
+
+            // Admin-only area: any path segment "/admin/" requires ROLE ADMIN.
+            if (path.contains("/admin/") && !"ADMIN".equals(role)) {
+                log.warn("Blocked non-admin (role={}) from admin path: {}", role, path);
+                exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
+                return exchange.getResponse().setComplete();
+            }
+
+            log.info("Gateway mutating request for path [{}]. Injecting headers: X-User-Id={}, X-User-Role={}",
+                    path, extractedUserId, role);
 
             ServerHttpRequest mutatedRequest = request.mutate()
                     .header("X-User-Id", extractedUserId)
-                    .header("X-User-Role", "ROLE_USER")
+                    .header("X-User-Role", role)
                     .build();
 
             return chain.filter(exchange.mutate().request(mutatedRequest).build());

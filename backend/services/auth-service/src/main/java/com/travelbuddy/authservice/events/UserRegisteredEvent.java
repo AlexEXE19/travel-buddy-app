@@ -1,3 +1,5 @@
 package com.travelbuddy.authservice.events;
 
-public record UserRegisteredEvent(String UUID) {}
+import java.util.UUID;
+
+public record UserRegisteredEvent(UUID userId) {}

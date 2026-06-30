@@ -46,6 +46,9 @@ public class UserCredentials {
     @Column(name = "account_status")
     private String accountStatus;
 
+    @Column(name = "role")
+    private String role;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 }
