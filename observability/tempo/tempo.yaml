@@ -1,0 +1,31 @@
+# Minimal single-binary Tempo for local/dev.
+# Accepts traces in Zipkin format (so the existing Spring "zipkin" exporter
+# works unchanged) and OTLP (for when services are instrumented with OTLP).
+server:
+  http_listen_port: 3200
+
+distributor:
+  receivers:
+    zipkin:                     # listens on :9411  (replaces the old Zipkin server)
+    otlp:
+      protocols:
+        http:                   # :4318
+        grpc:                   # :4317
+
+ingester:
+  max_block_duration: 5m
+
+compactor:
+  compaction:
+    block_retention: 24h        # dev: keep one day of traces
+
+storage:
+  trace:
+    backend: local
+    wal:
+      path: /var/tempo/wal
+    local:
+      path: /var/tempo/blocks
+
+usage_report:
+  reporting_enabled: false

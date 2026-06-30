@@ -60,6 +60,22 @@ services:
     networks:
       - backend-net
 
+  postgres-chat:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: chat_db
+    volumes:
+      - postgres_chat_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend-net
+
   rabbitmq:
     image: rabbitmq:3-management
     environment:
@@ -76,10 +92,63 @@ services:
       retries: 5
     networks:
       - backend-net
-  zipkin:
-    image: openzipkin/zipkin
+
+  # ---------- Observability stack (Grafana + Loki + Tempo) — replaces Zipkin ----------
+  loki:
+    image: grafana/loki:3.1.1
+    command: -config.file=/etc/loki/loki-config.yaml
+    volumes:
+      - ./observability/loki/loki-config.yaml:/etc/loki/loki-config.yaml:ro
+    networks:
+      - backend-net
+
+  promtail:
+    image: grafana/promtail:3.1.1
+    command: -config.file=/etc/promtail/config.yaml
+    user: root
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./observability/promtail/promtail.yaml:/etc/promtail/config.yaml:ro
+    depends_on:
+      - loki
+    networks:
+      - backend-net
+
+  tempo:
+    image: grafana/tempo:2.6.1
+    command: -config.file=/etc/tempo/tempo.yaml
+    user: "0"
+    volumes:
+      - ./observability/tempo/tempo.yaml:/etc/tempo/tempo.yaml:ro
+    networks:
+      - backend-net
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
     ports:
-      - "9411:9411"
+      - "9090:9090"
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - backend-net
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    ports:
+      - "3001:3000"
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - loki
+      - tempo
+      - prometheus
     networks:
       - backend-net
 
@@ -133,6 +202,7 @@ services:
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER}
       SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      PROFILE_SERVICE_URI: ${PROFILE_SERVICE_URI}
     depends_on:
       postgres-trip:
         condition: service_healthy
@@ -153,9 +223,32 @@ services:
       SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER}
       SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
       PROFILE_SERVICE_URI: ${PROFILE_SERVICE_URI}
+      TRIP_SERVICE_URI: ${TRIP_SERVICE_URI}
       EMBEDDING_SERVICE_URI: ${EMBEDDING_SERVICE_URI}
     depends_on:
       postgres-matching:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - backend-net
+
+  chat-service:
+    build: ./backend/services/chat-service
+    ports:
+      - "8086:8086"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-chat:5432/chat_db
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      PROFILE_SERVICE_URI: ${PROFILE_SERVICE_URI}
+      TRIP_SERVICE_URI: ${TRIP_SERVICE_URI}
+    depends_on:
+      postgres-chat:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
@@ -179,11 +272,16 @@ services:
       PROFILE_SERVICE_URI: ${PROFILE_SERVICE_URI}
       TRIP_SERVICE_URI: ${TRIP_SERVICE_URI}
       MATCHING_SERVICE_URI: ${MATCHING_SERVICE_URI}
+      CHAT_SERVICE_URI: ${CHAT_SERVICE_URI}
+      # Send traces to Tempo's Zipkin receiver (replaces the old Zipkin server).
+      MANAGEMENT_TRACING_EXPORT_ZIPKIN_ENDPOINT: http://tempo:9411/api/v2/spans
     depends_on:
       - auth-service
       - profile-service
       - trip-service
       - matching-service
+      - chat-service
+      - tempo
     networks:
       - backend-net
       - frontend-net
@@ -206,4 +304,5 @@ volumes:
   postgres_profile_data:
   postgres_trip_data:
   postgres_matching_data:
+  postgres_chat_data:
   rabbitmq_data:
