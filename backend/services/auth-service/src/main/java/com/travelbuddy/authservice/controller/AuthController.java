@@ -8,9 +8,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 @RestController
@@ -18,10 +18,27 @@ import org.springframework.http.ResponseEntity;
 @Tag(name = "Authentication", description = "Register and login endpoints")
 public class AuthController {
 
+    /** Session cookie lifetime; also bounds how long a stolen cookie stays usable. */
+    private static final int COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24; // 24 hours
+
     private final AuthService authService;
+
+    /** Send the cookie only over HTTPS in real deployments; off by default for local http. */
+    @Value("${app.cookie.secure:false}")
+    private boolean cookieSecure;
 
     public AuthController(AuthService authService) {
         this.authService = authService;
+    }
+
+    private Cookie buildAuthCookie(String token) {
+        Cookie authCookie = new Cookie("AUTH_TOKEN", token);
+        authCookie.setHttpOnly(true);          // not readable from JavaScript (XSS token theft)
+        authCookie.setSecure(cookieSecure);    // HTTPS-only when enabled
+        authCookie.setPath("/");
+        authCookie.setAttribute("SameSite", "Lax"); // mitigates cross-site request forgery
+        authCookie.setMaxAge(COOKIE_MAX_AGE_SECONDS);
+        return authCookie;
     }
 
     @PostMapping("/login")
@@ -29,17 +46,9 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response) {
 
         String token = authService.login(loginRequest.email(), loginRequest.password());
+        response.addCookie(buildAuthCookie(token));
 
-        Cookie authCookie = new Cookie("AUTH_TOKEN", token);
-        authCookie.setHttpOnly(true);
-//        authCookie.setSecure(true);
-        authCookie.setPath("/");
-        authCookie.setMaxAge(15*50*1000);
-
-        response.addCookie(authCookie);
-
-            return ResponseEntity.ok(new AuthResponse(true, "Login successful!", token));
-
+        return ResponseEntity.ok(new AuthResponse(true, "Login successful!", token));
     }
 
     @PostMapping("/register")
@@ -47,14 +56,8 @@ public class AuthController {
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest registerRequest, HttpServletResponse response) {
 
         String token = authService.register(registerRequest.email(), registerRequest.password());
-
-        Cookie authCookie = new Cookie("AUTH_TOKEN", token);
-        authCookie.setHttpOnly(true);
-        authCookie.setPath("/");
-        authCookie.setMaxAge(15 * 50 * 1000);
-        response.addCookie(authCookie);
+        response.addCookie(buildAuthCookie(token));
 
         return ResponseEntity.ok(new AuthResponse(true, "Register successful!", token));
-
     }
 }

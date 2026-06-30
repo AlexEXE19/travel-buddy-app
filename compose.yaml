@@ -154,8 +154,9 @@ services:
 
   auth-service:
     build: ./backend/services/auth-service
-    ports:
-      - "8081:8081"
+    # Internal only: reachable on backend-net via the gateway, not published to the host.
+    expose:
+      - "8081"
     environment:
       SPRING_DATASOURCE_URL: ${AUTH_DB_URL}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
@@ -174,8 +175,9 @@ services:
 
   profile-service:
     build: ./backend/services/profile-service
-    ports:
-      - "8082:8082"
+    # Internal only: reachable on backend-net via the gateway, not published to the host.
+    expose:
+      - "8082"
     environment:
       SPRING_DATASOURCE_URL: ${PROFILE_DB_URL}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
@@ -193,8 +195,9 @@ services:
 
   trip-service:
     build: ./backend/services/trip-service
-    ports:
-      - "8083:8083"
+    # Internal only: reachable on backend-net via the gateway, not published to the host.
+    expose:
+      - "8083"
     environment:
       SPRING_DATASOURCE_URL: ${TRIP_DB_URL}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
@@ -213,8 +216,9 @@ services:
 
   matching-service:
     build: ./backend/services/matching-service
-    ports:
-      - "8084:8084"
+    # Internal only: reachable on backend-net via the gateway, not published to the host.
+    expose:
+      - "8084"
     environment:
       SPRING_DATASOURCE_URL: ${MATCHING_DB_URL}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
@@ -257,8 +261,9 @@ services:
 
   embedding-service:
     build: ./backend/services/embedding-service
-    ports:
-      - "8085:8085"
+    # Internal only: only matching-service calls it, over backend-net.
+    expose:
+      - "8085"
     networks:
       - backend-net
 

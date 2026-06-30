@@ -26,13 +26,13 @@ public class JwtGatewayFilter implements GlobalFilter {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
 
-       if (
-    path.contains("/api/v1/auth") ||
-    path.contains("/swagger-ui") ||
-    path.contains("/v3/api-docs")
-) {
-    return chain.filter(exchange);
-}
+        // Public paths bypass JWT validation. Use startsWith on the (query-less) path
+        // so a value like "/api/v1/profile?x=/api/v1/auth" can never sneak through.
+        if (path.startsWith("/api/v1/auth")
+                || path.startsWith("/swagger-ui")
+                || path.startsWith("/v3/api-docs")) {
+            return chain.filter(exchange);
+        }
 
         HttpCookie authCookie = request.getCookies().getFirst("AUTH_TOKEN");
 
@@ -66,9 +66,15 @@ public class JwtGatewayFilter implements GlobalFilter {
             log.info("Gateway mutating request for path [{}]. Injecting headers: X-User-Id={}, X-User-Role={}",
                     path, extractedUserId, role);
 
+            // Remove any client-supplied identity headers before injecting the trusted
+            // ones, so a caller can never spoof X-User-Id / X-User-Role through the gateway.
             ServerHttpRequest mutatedRequest = request.mutate()
-                    .header("X-User-Id", extractedUserId)
-                    .header("X-User-Role", role)
+                    .headers(headers -> {
+                        headers.remove("X-User-Id");
+                        headers.remove("X-User-Role");
+                        headers.set("X-User-Id", extractedUserId);
+                        headers.set("X-User-Role", role);
+                    })
                     .build();
 
             return chain.filter(exchange.mutate().request(mutatedRequest).build());
