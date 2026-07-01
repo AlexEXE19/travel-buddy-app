@@ -5,7 +5,9 @@ import com.travelbuddy.chatservice.repository.ChatMessageRepository;
 import com.travelbuddy.chatservice.repository.ChatRoomRepository;
 import com.travelbuddy.chatservice.repository.RoomParticipantRepository;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.UUID;
 
@@ -28,16 +30,18 @@ class ChatServiceTest {
     @Test
     void readingMessagesAsNonParticipantIsRejected() {
         when(participantRepo.existsByRoomIdAndUserId(any(), any())).thenReturn(false);
-        assertThrows(SecurityException.class,
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
                 () -> service.getMessages(UUID.randomUUID(), UUID.randomUUID()));
+        assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
         verify(messageRepo, never()).findByRoomIdOrderBySentAt(any());
     }
 
     @Test
     void sendingMessageAsNonParticipantIsRejected() {
         when(participantRepo.existsByRoomIdAndUserId(any(), any())).thenReturn(false);
-        assertThrows(SecurityException.class,
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
                 () -> service.sendMessage(UUID.randomUUID(), UUID.randomUUID(), "hi"));
+        assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
         verify(messageRepo, never()).save(any());
     }
 }

@@ -6,8 +6,10 @@ import com.travelbuddy.chatservice.entity.*;
 import com.travelbuddy.chatservice.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -136,7 +138,7 @@ public class ChatService {
     // Get messages for a room
     public List<MessageDto> getMessages(UUID roomId, UUID requestingUserId) {
         if (!participantRepo.existsByRoomIdAndUserId(roomId, requestingUserId)) {
-            throw new SecurityException("Not a participant of this room");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not a participant of this room");
         }
         return messageRepo.findByRoomIdOrderBySentAt(roomId).stream()
                 .map(this::toDto).toList();
@@ -145,7 +147,7 @@ public class ChatService {
     // Send a new text message
     public MessageDto sendMessage(UUID roomId, UUID senderId, String content) {
         if (!participantRepo.existsByRoomIdAndUserId(roomId, senderId)) {
-            throw new SecurityException("Not a participant");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not a participant");
         }
         ChatMessage msg = messageRepo.save(ChatMessage.builder()
                 .roomId(roomId).senderId(senderId)
@@ -158,9 +160,9 @@ public class ChatService {
     // Edit a message
     public MessageDto editMessage(UUID roomId, UUID messageId, UUID requesterId, String newContent) {
         ChatMessage msg = messageRepo.findById(messageId)
-                .orElseThrow(() -> new NoSuchElementException("Message not found"));
-        if (!msg.getSenderId().equals(requesterId)) throw new SecurityException("Not the sender");
-        if (msg.getDeletedAt() != null) throw new IllegalStateException("Cannot edit deleted message");
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Message not found"));
+        if (!msg.getSenderId().equals(requesterId)) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not the sender");
+        if (msg.getDeletedAt() != null) throw new ResponseStatusException(HttpStatus.CONFLICT, "Cannot edit deleted message");
         msg.setContent(newContent);
         msg.setEditedAt(LocalDateTime.now());
         messageRepo.save(msg);
@@ -172,8 +174,8 @@ public class ChatService {
     // Delete a message (soft delete)
     public void deleteMessage(UUID roomId, UUID messageId, UUID requesterId) {
         ChatMessage msg = messageRepo.findById(messageId)
-                .orElseThrow(() -> new NoSuchElementException("Message not found"));
-        if (!msg.getSenderId().equals(requesterId)) throw new SecurityException("Not the sender");
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Message not found"));
+        if (!msg.getSenderId().equals(requesterId)) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not the sender");
         msg.setDeletedAt(LocalDateTime.now());
         msg.setContent(null);
         messageRepo.save(msg);
