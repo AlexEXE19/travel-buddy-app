@@ -15,7 +15,7 @@ export async function subscribePremium(): Promise<{ ok?: boolean; error?: string
   try {
     const res = await fetch(`${API_URL}/api/v1/profile/me/subscribe`, {
       method: "POST",
-      headers: { Cookie: `AUTH_TOKEN=${token}` },
+      headers: { Authorization: `Bearer ${token}` },
     })
     if (!res.ok) return { error: "Payment could not be processed" }
     revalidatePath("/premium")
@@ -32,7 +32,7 @@ export async function cancelPremium(): Promise<{ ok?: boolean; error?: string }>
   try {
     const res = await fetch(`${API_URL}/api/v1/profile/me/cancel-subscription`, {
       method: "POST",
-      headers: { Cookie: `AUTH_TOKEN=${token}` },
+      headers: { Authorization: `Bearer ${token}` },
     })
     if (!res.ok) return { error: "Could not cancel" }
     revalidatePath("/premium")

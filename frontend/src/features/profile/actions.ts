@@ -15,7 +15,7 @@ export async function getProfile(): Promise<UserProfile | null> {
   if (!token) return null
   try {
     const res = await fetch(`${API_URL}/api/v1/profile/me`, {
-      headers: { Cookie: `AUTH_TOKEN=${token}` },
+      headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
     })
     if (!res.ok) return null
@@ -34,7 +34,7 @@ export async function updateFilters(
   try {
     const res = await fetch(`${API_URL}/api/v1/profile/me/preferences`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json", Cookie: `AUTH_TOKEN=${token}` },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ femaleOnly, verifiedOnly }),
     })
     if (res.status === 403) {
@@ -81,7 +81,7 @@ export async function updateProfile(formData: FormData): Promise<{ error?: strin
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        Cookie: `AUTH_TOKEN=${token}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(body),
     })

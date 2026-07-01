@@ -14,7 +14,7 @@ export async function getChatRooms(): Promise<ChatRoom[] | null> {
   if (!token) return null
   try {
     const res = await fetch(`${API_URL}/api/v1/chat/rooms`, {
-      headers: { Cookie: `AUTH_TOKEN=${token}` },
+      headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
     })
     if (!res.ok) return null
@@ -27,7 +27,7 @@ export async function getRoomMessages(roomId: string): Promise<ChatMessage[] | n
   if (!token) return null
   try {
     const res = await fetch(`${API_URL}/api/v1/chat/rooms/${roomId}/messages`, {
-      headers: { Cookie: `AUTH_TOKEN=${token}` },
+      headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
     })
     if (!res.ok) return null
@@ -40,7 +40,7 @@ export async function getMatches() {
   if (!token) return null
   try {
     const res = await fetch(`${API_URL}/api/v1/matching/matches`, {
-      headers: { Cookie: `AUTH_TOKEN=${token}` },
+      headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
     })
     if (!res.ok) return null
@@ -59,7 +59,7 @@ export async function swipeUser(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Cookie: `AUTH_TOKEN=${token}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ targetUserId, action }),
     })
@@ -80,7 +80,7 @@ export async function getProfilesByIds(ids: string[]): Promise<ChatParticipant[]
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Cookie: `AUTH_TOKEN=${token}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(ids),
       cache: "no-store",

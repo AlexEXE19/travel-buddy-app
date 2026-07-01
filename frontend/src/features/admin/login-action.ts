@@ -27,8 +27,9 @@ export async function adminLogin(
 
   if (!res.ok) return { error: "Invalid email or password." }
 
-  const data = await res.json().catch(() => null)
-  const token: string | undefined = data?.token
+  // The auth-service returns the JWT via a Set-Cookie header (not the body).
+  const cookieHeader = res.headers.get("set-cookie")
+  const token = cookieHeader?.match(/AUTH_TOKEN\s*=\s*([^;]+)/i)?.[1]?.trim()
   if (!token) return { error: "Login failed." }
 
   let role = "USER"

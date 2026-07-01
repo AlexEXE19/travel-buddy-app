@@ -22,7 +22,7 @@ async function adminGet<T>(path: string): Promise<T | null> {
   if (!token) return null
   try {
     const res = await fetch(`${API_URL}${path}`, {
-      headers: { Cookie: `AUTH_TOKEN=${token}` },
+      headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
     })
     if (!res.ok) return null
@@ -63,7 +63,7 @@ export async function setUserVerified(
   try {
     const res = await fetch(`${API_URL}/api/v1/profile/admin/users/${userId}/verified`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json", Cookie: `AUTH_TOKEN=${token}` },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ verified }),
     })
     if (!res.ok) return { error: "Update failed" }
@@ -83,7 +83,7 @@ export async function setUserStatus(
   try {
     const res = await fetch(`${API_URL}/api/v1/admin/users/${userId}/status`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json", Cookie: `AUTH_TOKEN=${token}` },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ accountStatus }),
     })
     if (!res.ok) return { error: "Update failed" }
@@ -104,7 +104,7 @@ export async function updateReport(
   try {
     const res = await fetch(`${API_URL}/api/v1/admin/reports/${reportId}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json", Cookie: `AUTH_TOKEN=${token}` },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify(body),
     })
     if (!res.ok) return { error: "Update failed" }

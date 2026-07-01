@@ -18,7 +18,7 @@ export async function createReport(
   try {
     const res = await fetch(`${API_URL}/api/v1/reports`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Cookie: `AUTH_TOKEN=${token}` },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ reportedUserId, reasons, details }),
     })
     if (!res.ok) return { error: "Could not submit report" }

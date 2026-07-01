@@ -15,7 +15,7 @@ export async function getCreatedTrips(): Promise<Trip[] | null> {
   if (!token) return null
   try {
     const res = await fetch(`${API_URL}/api/v1/trips/me/created`, {
-      headers: { Cookie: `AUTH_TOKEN=${token}` },
+      headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
     })
     if (!res.ok) return null
@@ -30,7 +30,7 @@ export async function getJoinedTrips(): Promise<Trip[] | null> {
   if (!token) return null
   try {
     const res = await fetch(`${API_URL}/api/v1/trips/me/joined`, {
-      headers: { Cookie: `AUTH_TOKEN=${token}` },
+      headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
     })
     if (!res.ok) return null
@@ -45,7 +45,7 @@ export async function getTripById(tripId: string): Promise<Trip | null> {
   if (!token) return null
   try {
     const res = await fetch(`${API_URL}/api/v1/trips/${tripId}`, {
-      headers: { Cookie: `AUTH_TOKEN=${token}` },
+      headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
     })
     if (!res.ok) return null
@@ -69,7 +69,7 @@ export async function createTrip(payload: CreateTripApiPayload): Promise<{ ok?: 
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Cookie: `AUTH_TOKEN=${token}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(result.data),
     })
@@ -94,7 +94,7 @@ export async function updateTripStatus(tripId: string, status: TripStatus): Prom
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
-        Cookie: `AUTH_TOKEN=${token}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ status }),
     })
@@ -111,7 +111,7 @@ export async function leaveTripAction(tripId: string): Promise<{ ok?: boolean; e
   try {
     const res = await fetch(`${API_URL}/api/v1/trips/${tripId}/leave`, {
       method: "DELETE",
-      headers: { Cookie: `AUTH_TOKEN=${token}` },
+      headers: { Authorization: `Bearer ${token}` },
     })
     if (!res.ok) return { error: "Failed to leave trip" }
     return { ok: true }
@@ -126,7 +126,7 @@ export async function joinTripAction(tripId: string): Promise<{ ok?: boolean; er
   try {
     const res = await fetch(`${API_URL}/api/v1/trips/${tripId}/join`, {
       method: "POST",
-      headers: { Cookie: `AUTH_TOKEN=${token}` },
+      headers: { Authorization: `Bearer ${token}` },
     })
     if (res.status === 400) {
       const text = await res.text()
@@ -144,7 +144,7 @@ export async function getOpenTrips(): Promise<Trip[] | null> {
   if (!token) return null
   try {
     const res = await fetch(`${API_URL}/api/v1/trips/open`, {
-      headers: { Cookie: `AUTH_TOKEN=${token}` },
+      headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
     })
     if (!res.ok) return null
@@ -159,7 +159,7 @@ export async function getDiscoverUsers(limit = 10): Promise<import("@/src/types/
   if (!token) return null
   try {
     const res = await fetch(`${API_URL}/api/v1/matching/discover/users?limit=${limit}`, {
-      headers: { Cookie: `AUTH_TOKEN=${token}` },
+      headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
     })
     if (!res.ok) return null
@@ -174,7 +174,7 @@ export async function getDiscoverTrips(limit = 10): Promise<DiscoverTrip[] | nul
   if (!token) return null
   try {
     const res = await fetch(`${API_URL}/api/v1/matching/discover?limit=${limit}`, {
-      headers: { Cookie: `AUTH_TOKEN=${token}` },
+      headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
     })
     if (!res.ok) return null

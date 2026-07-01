@@ -48,7 +48,7 @@ public class AuthController {
         String token = authService.login(loginRequest.email(), loginRequest.password());
         response.addCookie(buildAuthCookie(token));
 
-        return ResponseEntity.ok(new AuthResponse(true, "Login successful!", token));
+        return ResponseEntity.ok(new AuthResponse(true, "Login successful!"));
     }
 
     @PostMapping("/register")
@@ -58,6 +58,6 @@ public class AuthController {
         String token = authService.register(registerRequest.email(), registerRequest.password());
         response.addCookie(buildAuthCookie(token));
 
-        return ResponseEntity.ok(new AuthResponse(true, "Register successful!", token));
+        return ResponseEntity.ok(new AuthResponse(true, "Register successful!"));
     }
 }
