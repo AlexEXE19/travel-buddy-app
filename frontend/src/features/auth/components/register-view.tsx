@@ -6,7 +6,7 @@ import Link from "next/link"
 export default function RegisterView() {
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
-      <AuthBrandPanel />
+      <AuthBrandPanel className="lg:order-last" />
 
       <div className="flex flex-col">
         <header className="p-6">

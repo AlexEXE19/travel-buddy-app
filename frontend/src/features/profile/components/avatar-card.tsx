@@ -1,7 +1,12 @@
 import { Badge } from "@/src/components/ui/badge"
-import { User, Crown, MapPin } from "lucide-react"
+import { Crown, MapPin } from "lucide-react"
 import { VerifiedBadge } from "@/src/components/verified-badge"
 import type { UserProfile } from "@/src/types/profile"
+
+function initialsOf(firstName?: string | null, lastName?: string | null): string {
+  const initials = `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase()
+  return initials || "?"
+}
 
 function calculateCompleteness(profile: UserProfile): number {
   const fields = [
@@ -52,8 +57,10 @@ export default function AvatarCard({ profile }: { profile: UserProfile }) {
               className="h-28 w-28 rounded-full border-4 border-card object-cover object-top shadow-md"
             />
           ) : (
-            <div className="flex h-28 w-28 items-center justify-center rounded-full border-4 border-card bg-gradient-to-br from-primary/20 to-accent/20 shadow-md">
-              <User className="h-12 w-12 text-primary" />
+            <div className="flex h-28 w-28 items-center justify-center rounded-full border-4 border-card bg-gradient-to-br from-primary to-accent shadow-md">
+              <span className="text-3xl font-semibold text-primary-foreground">
+                {initialsOf(profile.firstName, profile.lastName)}
+              </span>
             </div>
           )}
 

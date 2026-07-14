@@ -1,11 +1,12 @@
 import Image from "next/image"
 import { Sparkles, ShieldCheck, Users, Compass } from "lucide-react"
+import { cn } from "@/src/lib/utils"
 
-export function AuthBrandPanel() {
+export function AuthBrandPanel({ className }: { className?: string } = {}) {
   return (
-    <div className="relative hidden lg:flex flex-col justify-between overflow-hidden bg-gradient-to-br from-primary via-primary to-accent p-10 text-primary-foreground">
+    <div className={cn("relative hidden lg:flex flex-col justify-between overflow-hidden bg-gradient-to-br from-primary via-primary to-accent p-10 text-primary-foreground", className)}>
       <Image
-        src="/images/hero-travelers.png"
+        src="/images/hero-travelers.jpg"
         alt=""
         fill
         className="object-cover opacity-15 mix-blend-overlay"

@@ -79,7 +79,7 @@ export default function HomePage() {
               </div>
               <div className="relative aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl ring-1 ring-border/50">
                 <Image
-                  src="/images/hero-travelers.png"
+                  src="/images/hero-travelers.jpg"
                   alt="A group of happy travelers enjoying a scenic overlook together"
                   fill
                   className="object-cover"
@@ -108,8 +108,8 @@ export default function HomePage() {
               <article className="card-hover flex flex-col rounded-2xl border border-border bg-card overflow-hidden">
                 <div className="relative aspect-[3/2]">
                   <Image
-                    src="/images/feature-explore.png"
-                    alt="Two friends exploring a colorful old town together"
+                    src="/images/feature-explore.jpg"
+                    alt="Friends exploring a colorful old town street together"
                     fill
                     className="object-cover"
                   />
@@ -131,7 +131,7 @@ export default function HomePage() {
               <article className="card-hover flex flex-col rounded-2xl border border-border bg-card overflow-hidden">
                 <div className="relative aspect-[3/2]">
                   <Image
-                    src="/images/hero-travelers.png"
+                    src="/images/hero-travelers.jpg"
                     alt="Travelers meeting and learning together on a trip"
                     fill
                     className="object-cover"
@@ -154,7 +154,7 @@ export default function HomePage() {
               <article className="card-hover flex flex-col rounded-2xl border border-border bg-card overflow-hidden">
                 <div className="relative aspect-[3/2]">
                   <Image
-                    src="/images/feature-ai.png"
+                    src="/images/feature-ai.jpg"
                     alt="A traveler using an AI guide on their phone in a new city"
                     fill
                     className="object-cover"
@@ -181,7 +181,7 @@ export default function HomePage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-xl order-last lg:order-first">
               <Image
-                src="/images/feature-safety.png"
+                src="/images/feature-safety.jpg"
                 alt="Two women travelers feeling safe and confident together"
                 fill
                 className="object-cover"
