@@ -1,3 +1,12 @@
 .env
 .vscode/*
 docs/thesis/
+
+# IDE project files
+.idea/
+
+# Build output
+target/
+build/
+node_modules/
+.next/
