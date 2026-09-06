@@ -4,6 +4,10 @@ Travel Buddy is a platform for planning trips and finding compatible travel comp
 
 The backend is split into six Spring Boot services plus a Python embedding service, all behind a single API gateway, with a Next.js frontend on top. It's built as a microservices project rather than a monolith on purpose, to work with service boundaries, inter-service communication, message queues, and observability in a realistic setup.
 
+## Demo
+
+[![Watch the demo](https://img.youtube.com/vi/N5hkEmy2Imc/maxresdefault.jpg)](https://www.youtube.com/watch?v=N5hkEmy2Imc)
+
 ## How it works
 
 1. A user registers and logs in through **auth-service**, which issues a JWT.
