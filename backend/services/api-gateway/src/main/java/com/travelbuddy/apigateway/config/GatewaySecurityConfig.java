@@ -40,7 +40,7 @@ public class GatewaySecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchange -> exchange
                         .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()   // CORS preflight
-                        .pathMatchers("/api/v1/auth/**", "/swagger-ui/**", "/v3/api-docs/**", "/actuator/**").permitAll()
+                        .pathMatchers("/api/v1/auth/**", "/swagger-ui/**", "/swagger-ui.html","/v3/api-docs/**", "/actuator/**").permitAll()
                         // Admin endpoints live under two prefixes; both require ROLE_ADMIN.
                         .pathMatchers("/api/v1/admin/**", "/api/v1/profile/admin/**").hasRole("ADMIN")
                         .anyExchange().authenticated())
