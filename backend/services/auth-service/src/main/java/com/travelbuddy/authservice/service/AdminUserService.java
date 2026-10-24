@@ -22,21 +22,32 @@ public class AdminUserService {
     private final UserCredentialsRepository userRepository;
     private final ReportRepository reportRepository;
 
-    public List<AdminUserResponse> listUsers(String statusFilter) {
+   public List<AdminUserResponse> listUsers(String statusFilter) {
+    if (statusFilter == null || statusFilter.isBlank()) {
         return userRepository.findAll().stream()
-                .filter(u -> statusFilter == null || statusFilter.equalsIgnoreCase(u.getAccountStatus()))
                 .map(AdminUserResponse::from)
                 .toList();
     }
 
+    AccountStatus accountStatus = AccountStatus.from(statusFilter)
+            .orElseThrow(() -> new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Invalid account status."
+            ));
+
+    return userRepository.findByAccountStatus(accountStatus).stream()
+            .map(AdminUserResponse::from)
+            .toList();
+}
+
     public AdminUserResponse updateAccountStatus(UUID userId, String status) {
-        if (!AccountStatus.isValid(status)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Invalid account status. Allowed: " + AccountStatus.ALL);
-        }
+       AccountStatus accountStatus = AccountStatus.from(status).orElseThrow(()-> new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Invalid account status."));
+        
+        
         UserCredentials user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-        user.setAccountStatus(status);
+        user.setAccountStatus(accountStatus);
         userRepository.save(user);
         return AdminUserResponse.from(user);
     }

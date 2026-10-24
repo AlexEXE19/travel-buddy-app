@@ -28,7 +28,7 @@ public class ReportService {
     /** A regular user files a report against another user. */
     public ReportResponse create(UUID reporterId, CreateReportRequest req) {
         if (req.reportedUserId().equals(reporterId)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You cannot report yourself");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The reporter cannot report themselves");
         }
         if (!userRepository.existsById(req.reportedUserId())) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Reported user not found");
@@ -41,7 +41,7 @@ public class ReportService {
                 .status(ReportStatus.PENDING)
                 .build();
         report = reportRepository.save(report);
-        return ReportResponse.from(report, accountStatusOf(report.getReportedUserId()));
+        return ReportResponse.from(report, accountStatusOf(report.getReportedUserId()) );
     }
 
     /** Admin: list reports, optionally filtered by status. */
@@ -49,9 +49,13 @@ public class ReportService {
         List<Report> reports = (statusFilter == null)
                 ? reportRepository.findAllByOrderByCreatedAtDesc()
                 : reportRepository.findByStatusOrderByCreatedAtDesc(statusFilter);
-        return reports.stream()
-                .map(r -> ReportResponse.from(r, accountStatusOf(r.getReportedUserId())))
-                .toList();
+
+        
+
+        return reports.stream().map(r-> ReportResponse.from(r, accountStatusOf(r.getReportedUserId()))).toList();
+        // return reports.stream()
+        //         .map(r -> ReportResponse.from(r, r.getReportedUserId()))
+        //         .toList();
     }
 
     /**
@@ -67,28 +71,23 @@ public class ReportService {
         report.setReviewedBy(adminId);
         reportRepository.save(report);
 
-        if (req.reportedAccountStatus() != null && !req.reportedAccountStatus().isBlank()) {
-            String status = req.reportedAccountStatus();
-            if (!AccountStatus.isValid(status)) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Invalid account status. Allowed: " + AccountStatus.ALL);
-            }
+            
             UserCredentials reported = userRepository.findById(report.getReportedUserId())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reported user not found"));
-            reported.setAccountStatus(status);
+            reported.setAccountStatus(req.reportedAccountStatus());
             userRepository.save(reported);
-        }
 
-        return ReportResponse.from(report, accountStatusOf(report.getReportedUserId()));
+        return ReportResponse.from(report, req.reportedAccountStatus());
     }
 
     public long countByStatus(ReportStatus status) {
         return reportRepository.countByStatus(status);
     }
 
-    private String accountStatusOf(UUID userId) {
+    private AccountStatus accountStatusOf(UUID userId) {
         return userRepository.findById(userId)
                 .map(UserCredentials::getAccountStatus)
                 .orElse(null);
     }
+
 }

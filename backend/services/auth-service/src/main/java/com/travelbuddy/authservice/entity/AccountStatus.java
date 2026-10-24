@@ -1,18 +1,38 @@
 package com.travelbuddy.authservice.entity;
 
-import java.util.Set;
+import java.util.Locale;
+import java.util.Optional;
+// import java.util.Set;
 
-/** Allowed values for {@code users_credentials.account_status} (stored as String). */
-public final class AccountStatus {
-    public static final String ACTIVE = "ACTIVE";
-    public static final String SUSPENDED = "SUSPENDED";
-    public static final String BANNED = "BANNED";
+// /** Allowed values for {@code users_credentials.account_status} (stored as String). */
+// public final class AccountStatus {
+//     public static final String ACTIVE = "ACTIVE";
+//     public static final String SUSPENDED = "SUSPENDED";
+//     public static final String BANNED = "BANNED";
 
-    public static final Set<String> ALL = Set.of(ACTIVE, SUSPENDED, BANNED);
+//     public static final Set<String> ALL = Set.of(ACTIVE, SUSPENDED, BANNED);
 
-    private AccountStatus() {}
+//     private AccountStatus() {}
 
-    public static boolean isValid(String s) {
-        return s != null && ALL.contains(s);
+//     public static boolean isValid(String s) {
+//         return s != null && ALL.contains(s);
+//     }
+// }
+
+public enum AccountStatus {
+    ACTIVE, SUSPENDED, BANNED;
+
+    public static Optional<AccountStatus> from(String value) {
+        if (value == null || value.isBlank()) {
+            return Optional.empty();
+        }
+
+        try {
+            return Optional.of(AccountStatus.valueOf(value.trim().toUpperCase(Locale.ROOT))
+        );
+        } catch (IllegalArgumentException e) {
+            return Optional.empty();
+        }
+
     }
 }

@@ -38,9 +38,9 @@ public class AuthService {
             throw new BadCredentialsException("Invalid email or password");
         }
 
-        String status = userCredentials.getAccountStatus();
-        if (AccountStatus.BANNED.equals(status) || AccountStatus.SUSPENDED.equals(status)) {
-            throw new DisabledException("This account is " + status.toLowerCase() + ".");
+        AccountStatus accountStatus = userCredentials.getAccountStatus();
+        if (AccountStatus.BANNED == accountStatus || AccountStatus.SUSPENDED == accountStatus) {
+            throw new DisabledException("This account is " + accountStatus + ".");
         }
 
         return jwtUtil.generateToken(userCredentials.getId().toString(), roleOf(userCredentials));

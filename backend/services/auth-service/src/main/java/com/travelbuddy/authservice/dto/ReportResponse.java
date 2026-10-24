@@ -1,5 +1,6 @@
 package com.travelbuddy.authservice.dto;
 
+import com.travelbuddy.authservice.entity.AccountStatus;
 import com.travelbuddy.authservice.entity.Report;
 
 import java.time.LocalDateTime;
@@ -15,11 +16,11 @@ public record ReportResponse(
         String status,
         String adminNote,
         UUID reviewedBy,
-        String reportedAccountStatus,
+        AccountStatus reportedAccountStatus,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
-    public static ReportResponse from(Report r, String reportedAccountStatus) {
+    public static ReportResponse from(Report r, AccountStatus reportedAccountStatus) {
         return new ReportResponse(
                 r.getId(), r.getReporterId(), r.getReportedUserId(),
                 r.getReasons(), r.getDetails(), r.getStatus().name(),

@@ -1,5 +1,6 @@
 package com.travelbuddy.authservice.dto;
 
+import com.travelbuddy.authservice.entity.AccountStatus;
 import com.travelbuddy.authservice.entity.ReportStatus;
 
 /**
@@ -9,5 +10,5 @@ import com.travelbuddy.authservice.entity.ReportStatus;
 public record UpdateReportRequest(
         ReportStatus status,
         String adminNote,
-        String reportedAccountStatus
+        AccountStatus reportedAccountStatus
 ) {}
